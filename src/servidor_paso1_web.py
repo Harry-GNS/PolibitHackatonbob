@@ -172,21 +172,41 @@ def ejecutar_benchmarks():
         print("⚡ Iniciando benchmarks locales...")
         
         # Ejecutar motor_qa
-        resultados = run_benchmarks()
+        run_benchmarks()
         
-        # Cargar métricas generadas
+        # Cargar y procesar métricas generadas
         metricas_path = DATA_DIR / "metricas_salida.json"
         
-        if metricas_path.exists():
-            metricas = json.loads(metricas_path.read_text(encoding='utf-8'))
-        else:
-            metricas = {}
+        if not metricas_path.exists():
+            return jsonify({
+                "success": False,
+                "error": "No se generó archivo de métricas"
+            }), 500
+        
+        metricas_raw = json.loads(metricas_path.read_text(encoding='utf-8'))
+        benchmarks = metricas_raw.get('benchmarks', {})
+        
+        # Procesar para formato visual
+        metricas_procesadas = {}
+        for size_str, metrics in benchmarks.items():
+            size = int(size_str)
+            metricas_procesadas[size] = {
+                'n': size,
+                'time_ms': round(metrics['time_ms_mean'], 2),
+                'memory_mb': round(metrics['mem_bytes_peak_mean'] / (1024 * 1024), 2),
+                'samples_time': [round(t, 2) for t in metrics.get('time_ms_samples', [])],
+                'samples_memory': [round(m / (1024 * 1024), 2) for m in metrics.get('mem_bytes_peak_samples', [])]
+            }
+        
+        # Detectar alertas de rendimiento
+        alertas = detectar_alertas(metricas_procesadas)
         
         return jsonify({
             "success": True,
             "mensaje": "✅ Benchmarks completados exitosamente",
-            "archivo_metricas": str(metricas_path),
-            "metricas": metricas
+            "metricas": metricas_procesadas,
+            "alertas": alertas,
+            "timestamp": datetime.now().isoformat()
         })
     
     except Exception as e:
@@ -195,6 +215,90 @@ def ejecutar_benchmarks():
             "error": f"❌ Error en benchmarks: {str(e)}",
             "traceback": traceback.format_exc()
         }), 500
+
+
+def detectar_alertas(metricas):
+    """Detecta problemas de rendimiento y genera alertas."""
+    alertas = []
+    
+    if not metricas:
+        return alertas
+    
+    # Obtener valores ordenados por tamaño
+    sizes = sorted(metricas.keys())
+    valores_tiempo = [metricas[s]['time_ms'] for s in sizes]
+    valores_memoria = [metricas[s]['memory_mb'] for s in sizes]
+    
+    # Detectar crecimiento exponencial
+    if len(valores_tiempo) >= 2:
+        for i in range(1, len(valores_tiempo)):
+            tiempo_actual = valores_tiempo[i]
+            tiempo_anterior = valores_tiempo[i-1]
+            size_actual = sizes[i]
+            size_anterior = sizes[i-1]
+            
+            if tiempo_anterior > 0:
+                ratio_tiempo = tiempo_actual / tiempo_anterior
+                ratio_tamaño = size_actual / size_anterior
+                
+                # Si el tiempo crece mucho más que linealmente
+                if ratio_tiempo > ratio_tamaño * 2:
+                    alertas.append({
+                        'tipo': 'COMPLEJIDAD_ALTA',
+                        'nivel': 'warning',
+                        'icono': '⚠️',
+                        'mensaje': f'Crecimiento no lineal: N={size_anterior}→{size_actual}, tiempo crece {ratio_tiempo:.1f}x (esperado ~{ratio_tamaño:.1f}x)',
+                        'tamaños': [size_anterior, size_actual]
+                    })
+                
+                # Si el tiempo supera 1 segundo
+                if tiempo_actual > 1000:
+                    alertas.append({
+                        'tipo': 'TIEMPO_CRITICO',
+                        'nivel': 'error',
+                        'icono': '🔴',
+                        'mensaje': f'Tiempo crítico en N={size_actual}: {tiempo_actual:.0f}ms (>1s)',
+                        'tamaño': size_actual
+                    })
+    
+    # Alertas de memoria
+    max_memoria = max(valores_memoria) if valores_memoria else 0
+    if max_memoria > 100:
+        alertas.append({
+            'tipo': 'MEMORIA_ALTA',
+            'nivel': 'warning',
+            'icono': '💾',
+            'mensaje': f'Consumo de memoria elevado: {max_memoria:.1f} MB',
+            'valor_mb': max_memoria
+        })
+    
+    # Estimar complejidad basándose en el patrón de crecimiento
+    if len(valores_tiempo) >= 3:
+        ratios = []
+        for i in range(1, len(valores_tiempo)):
+            if valores_tiempo[i-1] > 0:
+                ratios.append(valores_tiempo[i] / valores_tiempo[i-1])
+        
+        promedio_ratio = sum(ratios) / len(ratios) if ratios else 1
+        
+        if promedio_ratio > 10:
+            alertas.append({
+                'tipo': 'COMPLEJIDAD_ESTIMADA',
+                'nivel': 'info',
+                'icono': '📊',
+                'mensaje': f'Complejidad estimada: O(N³) o peor (ratio promedio: {promedio_ratio:.1f}x)',
+                'ratio': promedio_ratio
+            })
+        elif promedio_ratio > 2.5:
+            alertas.append({
+                'tipo': 'COMPLEJIDAD_ESTIMADA',
+                'nivel': 'info',
+                'icono': '📊',
+                'mensaje': f'Complejidad estimada: O(N²) (ratio promedio: {promedio_ratio:.1f}x)',
+                'ratio': promedio_ratio
+            })
+    
+    return alertas
 
 
 @app.route('/api/integrar-watsonx', methods=['POST'])

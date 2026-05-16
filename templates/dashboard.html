@@ -3,12 +3,610 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OptiCode QA — PASO 1 Real</title>
+    <title>OptiCode QA — Panel del Auditor</title>
     
-    <!-- Tipografía Monoespaciada Técnica -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --white: #FFFFFF;
+            --bg-secondary: #F4F6F8;
+            --text-primary: #161616;
+            --text-secondary: #525252;
+            --blue-primary: #0F62FE;
+            --blue-hover: #0353E9;
+            --orange-alert: #E66000;
+            --red-error: #DA1E28;
+            --green-success: #24A148;
+            --gray-border: #E0E3E6;
+            --gray-light: #F9FAFB;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: "JetBrains Mono", monospace;
+            background: var(--white);
+            color: var(--text-primary);
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-border);
+            padding: 1.5rem 2rem;
+            box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+        
+        .status-badge {
+            display: inline-block; padding: 0.4rem 0.8rem;
+            background: var(--bg-secondary); border: 1px solid var(--gray-border);
+            border-radius: 4px; font-size: 0.85rem; color: var(--text-secondary);
+        }
+        
+        .status-badge.running {
+            background: var(--blue-primary); color: var(--white);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.7; }
+        }
+        
+        main {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        aside {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--gray-border);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar-section-title {
+            font-size: 0.75rem; text-transform: uppercase;
+            color: var(--text-secondary); letter-spacing: 1px;
+            margin-bottom: 1rem; font-weight: 700;
+        }
+        
+        .sidebar-input, .sidebar-button {
+            width: 100%; padding: 0.6rem 0.8rem;
+            margin-bottom: 0.5rem; border: 1px solid var(--gray-border);
+            border-radius: 4px; font-family: "JetBrains Mono", monospace;
+            font-size: 0.85rem; background: var(--white);
+            color: var(--text-primary); cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-button {
+            background: var(--blue-primary); color: var(--white);
+            border: none; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .sidebar-button:hover:not(:disabled) {
+            background: var(--blue-hover);
+            box-shadow: 0px 4px 8px rgba(15, 98, 254, 0.3);
+        }
+        
+        .sidebar-button:disabled {
+            background: var(--gray-border); cursor: not-allowed; opacity: 0.6;
+        }
+        
+        .content {
+            padding: 2rem; overflow-y: auto;
+        }
+        
+        .content-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .section-title {
+            font-size: 1rem; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 1.5rem;
+            font-weight: 700; border-bottom: 2px solid var(--blue-primary);
+            padding-bottom: 0.8rem;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+        
+        .grid-1 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .card {
+            background: var(--white); border: 1px solid var(--gray-border);
+            border-radius: 6px; padding: 1.5rem;
+            box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .card-title {
+            font-size: 0.9rem; text-transform: uppercase;
+            letter-spacing: 0.3px; margin-bottom: 1rem;
+            font-weight: 600; color: var(--text-secondary);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+        
+        .metrics-table {
+            width: 100%; border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .metrics-table thead {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--gray-border);
+        }
+        
+        .metrics-table th {
+            padding: 0.8rem; text-align: left;
+            font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.3px; color: var(--text-primary);
+        }
+        
+        .metrics-table tbody tr:nth-child(odd) {
+            background: var(--gray-light);
+        }
+        
+        .metrics-table tbody tr {
+            border-bottom: 1px solid var(--gray-border);
+        }
+        
+        .metrics-table td {
+            padding: 0.8rem; color: var(--text-primary);
+        }
+        
+        .value-good { color: var(--green-success); font-weight: 600; }
+        .value-warning { color: var(--orange-alert); font-weight: 600; }
+        .value-error { color: var(--red-error); font-weight: 600; }
+        
+        .alerts-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .alert {
+            padding: 1rem; margin-bottom: 0.8rem;
+            border-left: 4px solid; border-radius: 2px;
+            background: var(--gray-light); font-size: 0.9rem;
+            display: flex; gap: 0.8rem;
+        }
+        
+        .alert-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.2px; margin-bottom: 0.3rem;
+        }
+        
+        .alert-message {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .alert.info {
+            border-color: var(--blue-primary);
+        }
+        
+        .alert.warning {
+            border-color: var(--orange-alert);
+        }
+        
+        .alert.error {
+            border-color: var(--red-error);
+        }
+        
+        .empty-state {
+            text-align: center; padding: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .spinner {
+            border: 2px solid var(--gray-border);
+            border-top: 2px solid var(--blue-primary);
+            border-radius: 50%;
+            width: 30px; height: 30px;
+            animation: spin 0.8s linear infinite;
+            margin: 1rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 1200px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            main { grid-template-columns: 1fr; }
+            aside { border-right: none; border-bottom: 1px solid var(--gray-border); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>🔍 OptiCode QA — Panel del Auditor</h1>
+            <div class="status-badge" id="statusBadge">Listo</div>
+        </header>
+
+        <main>
+            <!-- SIDEBAR -->
+            <aside>
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">📊 Análisis de Bob</div>
+                    <select class="sidebar-input" id="bobAnalysisSelect" onchange="cargarAnalisisBob()">
+                        <option value="">Seleccionar...</option>
+                    </select>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">💻 Código Fuente</div>
+                    <select class="sidebar-input" id="codigoSelect">
+                        <option value="">Seleccionar...</option>
+                    </select>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">⚙️ Acciones</div>
+                    <button class="sidebar-button" id="ejecutarBtn" onclick="ejecutarAuditoria()">
+                        ⚡ EJECUTAR AUDITORÍA
+                    </button>
+                    <button class="sidebar-button" id="integrarBtn" onclick="integrarWatsonx()" disabled>
+                        🔗 Integrar watsonx
+                    </button>
+                    <button class="sidebar-button" id="reporteBtn" onclick="verReporte()" disabled>
+                        📄 Ver Reporte
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">ℹ️ Estado</div>
+                    <div class="status-badge" style="display: block; text-align: center; width: 100%;">
+                        <div id="alertasCount" style="font-size: 1.5rem; font-weight: 700;">0</div>
+                        <small>Alertas Detectadas</small>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <div class="content">
+                <!-- GRÁFICOS -->
+                <div class="content-section">
+                    <h2 class="section-title">📈 Análisis de Rendimiento</h2>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-title">Tiempo de Ejecución (ms)</div>
+                            <div class="chart-container">
+                                <canvas id="chartTiempo"></canvas>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Consumo de Memoria (MB)</div>
+                            <div class="chart-container">
+                                <canvas id="chartMemoria"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÉTRICAS DETALLADAS -->
+                <div class="content-section">
+                    <h2 class="section-title">📊 Métricas Detalladas</h2>
+                    <div class="card">
+                        <table class="metrics-table" id="metricsTable">
+                            <thead>
+                                <tr>
+                                    <th>Tamaño (N)</th>
+                                    <th>Tiempo (ms)</th>
+                                    <th>Memoria (MB)</th>
+                                    <th>Muestras Tiempo</th>
+                                    <th>Desv. Est.</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metricsTableBody">
+                                <tr>
+                                    <td colspan="5" class="empty-state">Sin datos. Ejecuta una auditoría primero.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ALERTAS -->
+                <div class="content-section">
+                    <h2 class="section-title">⚠️ Alertas de Rendimiento</h2>
+                    <div class="card">
+                        <div class="alerts-container" id="alertasContainer">
+                            <div class="empty-state">
+                                <p>✓ Sin alertas. Sistema operativo dentro de parámetros normales.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANÁLISIS DE BOB -->
+                <div class="content-section">
+                    <h2 class="section-title">📐 Análisis de Bob IDE</h2>
+                    <div class="card">
+                        <div id="bobAnalisisContent" class="empty-state">
+                            <p>Selecciona un análisis para ver detalles.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let chartTiempo = null;
+        let chartMemoria = null;
+        let metricsData = {};
+        let alertasActuales = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarAnalisisBob();
+            cargarCodigos();
+        });
+
+        async function cargarAnalisisBob() {
+            try {
+                const response = await fetch('/api/bob-sessions');
+                const data = await response.json();
+
+                const select = document.getElementById('bobAnalysisSelect');
+                select.innerHTML = '<option value="">Seleccionar...</option>';
+
+                if (data.success && data.archivos) {
+                    data.archivos.forEach(archivo => {
+                        const option = document.createElement('option');
+                        option.value = archivo.nombre;
+                        option.textContent = archivo.nombre.replace('.md', '');
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function cargarAnalisisBob() {
+            const nombre = document.getElementById('bobAnalysisSelect').value;
+            if (!nombre) return;
+
+            fetch(`/api/bob-sessions/${nombre}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const container = document.getElementById('bobAnalisisContent');
+                        const preview = data.contenido.substring(0, 800);
+                        container.innerHTML = `<pre style="white-space: pre-wrap; font-size: 0.85rem; line-height: 1.4;">${escapeHtml(preview)}</pre>`;
+                    }
+                });
+        }
+
+        async function cargarCodigos() {
+            try {
+                const response = await fetch('/api/codigos');
+                const data = await response.json();
+
+                const select = document.getElementById('codigoSelect');
+                select.innerHTML = '<option value="">Seleccionar...</option>';
+
+                if (data.success && data.archivos) {
+                    data.archivos.forEach(archivo => {
+                        const option = document.createElement('option');
+                        option.value = archivo.nombre;
+                        option.textContent = archivo.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function ejecutarAuditoria() {
+            const btn = document.getElementById('ejecutarBtn');
+            const badge = document.getElementById('statusBadge');
+
+            btn.disabled = true;
+            badge.textContent = 'Ejecutando...';
+            badge.className = 'status-badge running';
+
+            try {
+                const response = await fetch('/api/ejecutar-benchmarks', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    metricsData = data.metricas;
+                    alertasActuales = data.alertas || [];
+
+                    actualizarGraficos();
+                    actualizarTabla();
+                    actualizarAlertas();
+
+                    badge.textContent = 'Auditoría Completada ✓';
+                    badge.className = 'status-badge';
+
+                    document.getElementById('integrarBtn').disabled = false;
+                    document.getElementById('reporteBtn').disabled = false;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                badge.textContent = 'Error en Auditoría';
+                alert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function actualizarGraficos() {
+            const sizes = Object.keys(metricsData).sort((a, b) => parseInt(a) - parseInt(b));
+            const tiempos = sizes.map(s => metricsData[s].time_ms);
+            const memorias = sizes.map(s => metricsData[s].memory_mb);
+
+            const ctxTiempo = document.getElementById('chartTiempo').getContext('2d');
+            if (chartTiempo) chartTiempo.destroy();
+
+            chartTiempo = new Chart(ctxTiempo, {
+                type: 'line',
+                data: {
+                    labels: sizes.map(s => `N=${s}`),
+                    datasets: [{
+                        label: 'Tiempo (ms)',
+                        data: tiempos,
+                        borderColor: '#0F62FE',
+                        backgroundColor: 'rgba(15, 98, 254, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#0F62FE',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { color: 'rgba(0,0,0,0.05)' } }
+                    }
+                }
+            });
+
+            const ctxMemoria = document.getElementById('chartMemoria').getContext('2d');
+            if (chartMemoria) chartMemoria.destroy();
+
+            chartMemoria = new Chart(ctxMemoria, {
+                type: 'bar',
+                data: {
+                    labels: sizes.map(s => `N=${s}`),
+                    datasets: [{
+                        label: 'Memoria (MB)',
+                        data: memorias,
+                        backgroundColor: '#24A148',
+                        borderColor: '#1B4B2C',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function actualizarTabla() {
+            const tbody = document.getElementById('metricsTableBody');
+            tbody.innerHTML = '';
+
+            const sizes = Object.keys(metricsData).sort((a, b) => parseInt(a) - parseInt(b));
+
+            sizes.forEach(size => {
+                const m = metricsData[size];
+                const desv = m.samples_time.length > 1
+                    ? Math.sqrt(m.samples_time.reduce((sum, val) => sum + Math.pow(val - m.time_ms, 2), 0) / m.samples_time.length)
+                    : 0;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>N = ${size}</strong></td>
+                    <td class="${m.time_ms > 1000 ? 'value-error' : (m.time_ms > 100 ? 'value-warning' : 'value-good')}">${m.time_ms.toFixed(2)}</td>
+                    <td class="${m.memory_mb > 100 ? 'value-warning' : 'value-good'}">${m.memory_mb.toFixed(2)}</td>
+                    <td>${m.samples_time.map(t => t.toFixed(2)).join(', ')}</td>
+                    <td>${desv.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('alertasCount').textContent = alertasActuales.length;
+        }
+
+        function actualizarAlertas() {
+            const container = document.getElementById('alertasContainer');
+
+            if (!alertasActuales || alertasActuales.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>✓ Sin alertas. Sistema dentro de parámetros normales.</p></div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            alertasActuales.forEach(alerta => {
+                const div = document.createElement('div');
+                div.className = `alert ${alerta.nivel}`;
+                div.innerHTML = `
+                    <div class="alert-icon">${alerta.icono}</div>
+                    <div class="alert-content">
+                        <div class="alert-title">${alerta.tipo}</div>
+                        <div class="alert-message">${alerta.mensaje}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function integrarWatsonx() {
+            alert('⏳ Integración watsonx.ai en desarrollo. Datos listos en los gráficos.');
+        }
+
+        function verReporte() {
+            alert('📄 Reporte disponible en output/REPORTE_FINAL_QA.md');
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>
         /* ============================================
            VARIABLES Y SETUP GLOBAL
            ============================================ */
