@@ -2,11 +2,11 @@
   "benchmarks": {
     "10": {
       "dfs": {
-        "time_ms_mean": 0.1517,
+        "time_ms_mean": 0.5993,
         "time_ms_samples": [
-          0.2377,
-          0.1125,
-          0.1049
+          1.5552,
+          0.1312,
+          0.1116
         ],
         "mem_bytes_peak_mean": 536,
         "mem_bytes_peak_samples": [
@@ -16,11 +16,11 @@
         ]
       },
       "ldfs": {
-        "time_ms_mean": 0.0918,
+        "time_ms_mean": 0.067,
         "time_ms_samples": [
-          0.0949,
-          0.0892,
-          0.0913
+          0.0862,
+          0.0618,
+          0.0529
         ],
         "mem_bytes_peak_mean": 376,
         "mem_bytes_peak_samples": [
@@ -30,11 +30,11 @@
         ]
       },
       "idfs": {
-        "time_ms_mean": 0.462,
+        "time_ms_mean": 0.2443,
         "time_ms_samples": [
-          0.3504,
-          0.7327,
-          0.3028
+          0.1958,
+          0.3105,
+          0.2265
         ],
         "mem_bytes_peak_mean": 408,
         "mem_bytes_peak_samples": [
@@ -43,11 +43,11 @@
           408
         ]
       },
-      "time_ms_mean": 0.1517,
+      "time_ms_mean": 0.5993,
       "time_ms_samples": [
-        0.2377,
-        0.1125,
-        0.1049
+        1.5552,
+        0.1312,
+        0.1116
       ],
       "mem_bytes_peak_mean": 536,
       "mem_bytes_peak_samples": [
@@ -58,11 +58,11 @@
     },
     "100": {
       "dfs": {
-        "time_ms_mean": 1.0517,
+        "time_ms_mean": 0.8649,
         "time_ms_samples": [
-          1.2479,
-          1.0689,
-          0.8382
+          0.8461,
+          0.9051,
+          0.8434
         ],
         "mem_bytes_peak_mean": 1096,
         "mem_bytes_peak_samples": [
@@ -72,38 +72,38 @@
         ]
       },
       "ldfs": {
-        "time_ms_mean": 0.9918,
+        "time_ms_mean": 0.8216,
         "time_ms_samples": [
-          0.963,
-          0.97,
-          1.0423
+          1.2333,
+          0.7371,
+          0.4945
         ],
-        "mem_bytes_peak_mean": 936,
+        "mem_bytes_peak_mean": 973,
         "mem_bytes_peak_samples": [
-          936,
+          1048,
           936,
           936
         ]
       },
       "idfs": {
-        "time_ms_mean": 3.6627,
+        "time_ms_mean": 3.1928,
         "time_ms_samples": [
-          4.0798,
-          4.372,
-          2.5363
+          2.6995,
+          3.0378,
+          3.8411
         ],
-        "mem_bytes_peak_mean": 968,
+        "mem_bytes_peak_mean": 1005,
         "mem_bytes_peak_samples": [
-          968,
+          1080,
           968,
           968
         ]
       },
-      "time_ms_mean": 1.0517,
+      "time_ms_mean": 0.8649,
       "time_ms_samples": [
-        1.2479,
-        1.0689,
-        0.8382
+        0.8461,
+        0.9051,
+        0.8434
       ],
       "mem_bytes_peak_mean": 1096,
       "mem_bytes_peak_samples": [
@@ -114,114 +114,114 @@
     },
     "1000": {
       "dfs": {
-        "time_ms_mean": 11.0321,
+        "time_ms_mean": 18.6564,
         "time_ms_samples": [
-          12.9408,
-          10.5844,
-          9.571
+          25.0474,
+          13.1657,
+          17.756
         ],
-        "mem_bytes_peak_mean": 10224,
+        "mem_bytes_peak_mean": 8914,
         "mem_bytes_peak_samples": [
-          11909,
-          11045,
+          11304,
+          7720,
           7720
         ]
       },
       "ldfs": {
-        "time_ms_mean": 7.0329,
+        "time_ms_mean": 18.8481,
         "time_ms_samples": [
-          7.0923,
-          7.36,
-          6.6465
+          20.8485,
+          23.7728,
+          11.923
         ],
-        "mem_bytes_peak_mean": 7621,
+        "mem_bytes_peak_mean": 7597,
         "mem_bytes_peak_samples": [
-          7744,
+          7672,
           7560,
           7560
         ]
       },
       "idfs": {
-        "time_ms_mean": 30.0179,
+        "time_ms_mean": 27.0188,
         "time_ms_samples": [
-          28.3132,
-          32.1227,
-          29.6179
+          36.3094,
+          22.9297,
+          21.8173
         ],
-        "mem_bytes_peak_mean": 8431,
+        "mem_bytes_peak_mean": 8449,
         "mem_bytes_peak_samples": [
-          8544,
-          8614,
-          8137
+          7704,
+          9979,
+          7664
         ]
       },
-      "time_ms_mean": 11.0321,
+      "time_ms_mean": 18.6564,
       "time_ms_samples": [
-        12.9408,
-        10.5844,
-        9.571
+        25.0474,
+        13.1657,
+        17.756
       ],
-      "mem_bytes_peak_mean": 10224,
+      "mem_bytes_peak_mean": 8914,
       "mem_bytes_peak_samples": [
-        11909,
-        11045,
+        11304,
+        7720,
         7720
       ]
     },
     "5000": {
       "dfs": {
-        "time_ms_mean": 42.9293,
+        "time_ms_mean": 38.2119,
         "time_ms_samples": [
-          47.4831,
-          32.6703,
-          48.6344
+          36.9547,
+          35.0089,
+          42.672
         ],
-        "mem_bytes_peak_mean": 53593,
+        "mem_bytes_peak_mean": 53604,
         "mem_bytes_peak_samples": [
-          54354,
-          53182,
-          53244
+          53614,
+          53062,
+          54138
         ]
       },
       "ldfs": {
-        "time_ms_mean": 39.4787,
+        "time_ms_mean": 32.6784,
         "time_ms_samples": [
-          36.8316,
-          38.1051,
-          43.4995
+          32.1197,
+          33.35,
+          32.5655
         ],
-        "mem_bytes_peak_mean": 53718,
+        "mem_bytes_peak_mean": 53247,
         "mem_bytes_peak_samples": [
-          55074,
-          53103,
-          52977
+          53602,
+          53580,
+          52560
         ]
       },
       "idfs": {
-        "time_ms_mean": 143.1358,
+        "time_ms_mean": 120.5326,
         "time_ms_samples": [
-          154.4043,
-          132.7896,
-          142.2135
+          121.2554,
+          114.5044,
+          125.838
         ],
-        "mem_bytes_peak_mean": 54654,
+        "mem_bytes_peak_mean": 54903,
         "mem_bytes_peak_samples": [
-          54283,
-          53159,
-          56522
+          54685,
+          54485,
+          55539
         ]
       },
-      "time_ms_mean": 42.9293,
+      "time_ms_mean": 38.2119,
       "time_ms_samples": [
-        47.4831,
-        32.6703,
-        48.6344
+        36.9547,
+        35.0089,
+        42.672
       ],
-      "mem_bytes_peak_mean": 53593,
+      "mem_bytes_peak_mean": 53604,
       "mem_bytes_peak_samples": [
-        54354,
-        53182,
-        53244
+        53614,
+        53062,
+        54138
       ]
     }
   }

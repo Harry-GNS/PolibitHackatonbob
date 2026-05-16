@@ -68,7 +68,7 @@ Por favor, genera tu respuesta en un formato Markdown impecable y ejecutivo.
         credentials = {"url": URL_ENDPOINT, "apikey": API_KEY}
 
         model = ModelInference(
-            model_id="meta-llama/llama-3-3-70b-instruct",
+            model_id = "ibm/granite-8b-code-instruct",
             params={
                 "decoding_method": "greedy",
                 "max_new_tokens": 1000,
