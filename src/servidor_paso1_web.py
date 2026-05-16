@@ -9,6 +9,7 @@ from pathlib import Path
 import json
 import traceback
 import sys
+import re
 from datetime import datetime
 
 # Añadir el directorio raíz al path
@@ -202,11 +203,21 @@ def ejecutar_benchmarks():
         # Detectar alertas de rendimiento
         alertas = detectar_alertas(metricas_procesadas)
         
+        # Obtener resumen del análisis si está disponible
+        resumen_analisis = None
+        bob_files = list(BOB_SESSIONS_DIR.glob('*.md'))
+        if bob_files:
+            # Tomar el archivo más reciente
+            archivo_mas_reciente = sorted(bob_files, key=lambda x: x.stat().st_mtime, reverse=True)[0]
+            contenido_md = archivo_mas_reciente.read_text(encoding='utf-8')
+            resumen_analisis = resumir_analisis_md(contenido_md)
+        
         return jsonify({
             "success": True,
             "mensaje": "✅ Benchmarks completados exitosamente",
             "metricas": metricas_procesadas,
             "alertas": alertas,
+            "resumen_analisis": resumen_analisis,
             "timestamp": datetime.now().isoformat()
         })
     
@@ -216,6 +227,29 @@ def ejecutar_benchmarks():
             "error": f"❌ Error en benchmarks: {str(e)}",
             "traceback": traceback.format_exc()
         }), 500
+
+
+@app.route('/api/resumen-analisis/<nombre>', methods=['GET'])
+def obtener_resumen_analisis(nombre):
+    """Obtiene el resumen procesado de un análisis MD."""
+    try:
+        ruta = BOB_SESSIONS_DIR / nombre
+        
+        if not ruta.exists():
+            return jsonify({"error": f"Archivo no encontrado: {nombre}"}), 404
+        
+        contenido = ruta.read_text(encoding='utf-8')
+        resumen = resumir_analisis_md(contenido)
+        
+        return jsonify({
+            "success": True,
+            "nombre": nombre,
+            "resumen": resumen,
+            "contenido_completo": contenido  # También devolver para PDF si es necesario
+        })
+    
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 def detectar_alertas(metricas):
@@ -300,6 +334,75 @@ def detectar_alertas(metricas):
             })
     
     return alertas
+
+
+def resumir_analisis_md(contenido_md, max_puntos=5):
+    """Extrae y resume los puntos clave del análisis MD.
+    
+    Args:
+        contenido_md: Contenido del archivo markdown
+        max_puntos: Máximo número de puntos clave a extraer
+    
+    Returns:
+        dict con resumen estructurado
+    """
+    resumen = {
+        'titulo': '',
+        'puntos_clave': [],
+        'cuellos_botella': [],
+        'recomendaciones': [],
+        'metricas': {}
+    }
+    
+    lineas = contenido_md.split('\n')
+    
+    # Extraer título principal
+    for linea in lineas:
+        if linea.startswith('# '):
+            resumen['titulo'] = linea.replace('# ', '').strip()
+            break
+    
+    # Extraer secciones principales
+    seccion_actual = None
+    buffer = []
+    
+    for linea in lineas:
+        if linea.startswith('## '):
+            # Procesar sección anterior
+            if seccion_actual and buffer:
+                texto = '\n'.join(buffer).strip()
+                if seccion_actual == 'CUELLOS DE BOTELLA':
+                    # Extraer problemas marcados con 🔴
+                    if '🔴' in texto:
+                        problemas = re.findall(r'🔴.*?(?=🔴|$)', texto, re.DOTALL)
+                        for p in problemas:
+                            linea_problema = p.strip().split('\n')[0]
+                            resumen['cuellos_botella'].append(linea_problema.replace('🔴', '').strip())
+                elif seccion_actual == 'RECOMENDACIONES':
+                    # Extraer recomendaciones numeradas
+                    recs = re.findall(r'\d+\.\s+(.*?)(?=\d+\.|$)', texto, re.DOTALL)
+                    for r in recs[:max_puntos]:
+                        resumen['recomendaciones'].append(r.strip().split('\n')[0])
+            
+            seccion_actual = linea.replace('## ', '').strip().split(' ')[0]
+            buffer = []
+        else:
+            buffer.append(linea)
+    
+    # Extraer complejidades
+    complejidades = re.findall(r'O\([^)]+\)', contenido_md)
+    resumen['metricas']['complejidades_encontradas'] = list(set(complejidades))
+    
+    # Si no encontramos suficientes puntos clave, extraer del resumen general
+    if not resumen['puntos_clave']:
+        # Buscar líneas que empiezan con "**" o "- "
+        for linea in lineas:
+            if (linea.startswith('**') or linea.startswith('- ')) and len(resumen['puntos_clave']) < max_puntos:
+                punto = linea.replace('**', '').replace('- ', '').strip()
+                if punto and len(punto) > 10:
+                    resumen['puntos_clave'].append(punto[:100] + '...' if len(punto) > 100 else punto)
+    
+    return resumen
 
 
 @app.route('/api/integrar-watsonx', methods=['POST'])

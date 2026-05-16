@@ -268,6 +268,51 @@
 
         .empty-state { text-align: center; padding: 1.2rem; color: var(--text-secondary); font-size: 0.85rem; }
 
+        /* Resumen Análisis */
+        .resumen-titulo {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .resumen-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .resumen-item {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--blue-primary);
+            padding: 0.8rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .resumen-item.cuellos-botella {
+            border-left-color: var(--red-error);
+        }
+
+        .resumen-item.recomendacion {
+            border-left-color: var(--green-success);
+        }
+
+        .resumen-item-titulo {
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .resumen-item-contenido {
+            font-size: 0.78rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
         /* Spinner overlay for PDF */
         .spinner-overlay {
             display: none;
@@ -353,7 +398,14 @@
     <!-- CONTENT -->
     <div class="content">
         <div class="content-section">
-            <h2 class="section-title">📈 Análisis de Rendimiento</h2>
+            <h2 class="section-title">� Resumen del Análisis</h2>
+            <div class="card" id="resumenAnalisisCard" style="display: none;">
+                <div id="resumenContenido"></div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">�📈 Análisis de Rendimiento</h2>
             <div class="grid-2">
                 <div class="card">
                     <div class="card-title">Tiempo de Ejecución (ms)</div>
@@ -417,6 +469,7 @@
     let alertasActuales = [];
     let codigoActual  = '';   // contenido del archivo seleccionado
     let bobActual     = '';   // nombre del análisis seleccionado
+    let resumenActual = null; // resumen del análisis MD
 
     // ── Init ─────────────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
@@ -535,10 +588,16 @@
             if (data.success) {
                 metricsData     = data.metricas;
                 alertasActuales = data.alertas || [];
+                resumenActual   = data.resumen_analisis;
 
                 actualizarGraficos();
                 actualizarTabla();
                 actualizarAlertas();
+                
+                // Mostrar resumen del análisis
+                if (resumenActual) {
+                    mostrarResumenAnalisis(resumenActual);
+                }
 
                 log('✅ Benchmarks completados exitosamente', 'success');
                 badge.textContent = 'Auditoría Completada ✓';
@@ -555,6 +614,79 @@
         } finally {
             btn.disabled = false;
         }
+    }
+
+    function mostrarResumenAnalisis(resumen) {
+        const card = document.getElementById('resumenAnalisisCard');
+        const contenido = document.getElementById('resumenContenido');
+        
+        if (!resumen || Object.keys(resumen).length === 0) {
+            card.style.display = 'none';
+            return;
+        }
+        
+        let html = '';
+        
+        // Título
+        if (resumen.titulo) {
+            html += `<div class="resumen-titulo">📊 ${resumen.titulo}</div>`;
+        }
+        
+        html += '<div class="resumen-items">';
+        
+        // Puntos clave
+        if (resumen.puntos_clave && resumen.puntos_clave.length > 0) {
+            resumen.puntos_clave.forEach(punto => {
+                html += `
+                    <div class="resumen-item">
+                        <div class="resumen-item-titulo">✅ Punto Clave</div>
+                        <div class="resumen-item-contenido">${punto}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        // Cuellos de botella
+        if (resumen.cuellos_botella && resumen.cuellos_botella.length > 0) {
+            resumen.cuellos_botella.forEach(cuello => {
+                html += `
+                    <div class="resumen-item cuellos-botella">
+                        <div class="resumen-item-titulo">🔴 Cuello de Botella</div>
+                        <div class="resumen-item-contenido">${cuello}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        // Recomendaciones
+        if (resumen.recomendaciones && resumen.recomendaciones.length > 0) {
+            resumen.recomendaciones.forEach(rec => {
+                html += `
+                    <div class="resumen-item recomendacion">
+                        <div class="resumen-item-titulo">💡 Recomendación</div>
+                        <div class="resumen-item-contenido">${rec}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        html += '</div>';
+        
+        // Complejidades encontradas
+        if (resumen.metricas && resumen.metricas.complejidades_encontradas) {
+            html += `
+                <div style="background: var(--bg-secondary); padding: 0.8rem; border-radius: 3px; font-size: 0.8rem;">
+                    <div class="resumen-item-titulo">📐 Complejidades Encontradas</div>
+                    <div style="font-family: 'Courier New', monospace; color: var(--blue-primary); word-break: break-all;">
+                        ${resumen.metricas.complejidades_encontradas.join(' | ')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        contenido.innerHTML = html;
+        card.style.display = 'block';
+        log(`📋 Resumen del análisis mostrado`, 'success');
     }
 
     // ── Gráficos ──────────────────────────────────────────────────────────────
@@ -738,6 +870,90 @@
 
             function rowBg(i) {
                 return i % 2 === 0 ? [249,250,251] : WHITE;
+            }
+
+            // ── Sección 0: Resumen del Análisis ───────────────────────────────
+            if (resumenActual) {
+                sectionTitle('📋 Resumen del Análisis Bob IDE');
+
+                if (resumenActual.titulo) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.setTextColor(...DARK);
+                    doc.text(`Análisis: ${resumenActual.titulo}`, margin, y);
+                    y += 6;
+                }
+
+                // Puntos clave
+                if (resumenActual.puntos_clave && resumenActual.puntos_clave.length > 0) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(8);
+                    doc.setTextColor(...BLUE);
+                    doc.text('✅ Puntos Clave:', margin, y);
+                    y += 4;
+
+                    resumenActual.puntos_clave.slice(0, 3).forEach(punto => {
+                        checkPage(6);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(...DARK);
+                        const lineas = doc.splitTextToSize(`• ${punto}`, W - margin*2 - 4);
+                        doc.text(lineas[0] || '', margin + 2, y);
+                        y += 5;
+                    });
+                    y += 2;
+                }
+
+                // Cuellos de botella
+                if (resumenActual.cuellos_botella && resumenActual.cuellos_botella.length > 0) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(8);
+                    doc.setTextColor(...RED);
+                    doc.text('🔴 Cuellos de Botella Críticos:', margin, y);
+                    y += 4;
+
+                    resumenActual.cuellos_botella.slice(0, 3).forEach(cuello => {
+                        checkPage(6);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(...DARK);
+                        const lineas = doc.splitTextToSize(`• ${cuello}`, W - margin*2 - 4);
+                        doc.text(lineas[0] || '', margin + 2, y);
+                        y += 5;
+                    });
+                    y += 2;
+                }
+
+                // Recomendaciones
+                if (resumenActual.recomendaciones && resumenActual.recomendaciones.length > 0) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(8);
+                    doc.setTextColor(...GREEN);
+                    doc.text('💡 Recomendaciones:', margin, y);
+                    y += 4;
+
+                    resumenActual.recomendaciones.slice(0, 3).forEach(rec => {
+                        checkPage(6);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(...DARK);
+                        const lineas = doc.splitTextToSize(`• ${rec}`, W - margin*2 - 4);
+                        doc.text(lineas[0] || '', margin + 2, y);
+                        y += 5;
+                    });
+                    y += 4;
+                }
+
+                // Complejidades
+                if (resumenActual.metricas && resumenActual.metricas.complejidades_encontradas) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(7.5);
+                    doc.setTextColor(...DARK);
+                    doc.text(`📐 Complejidades: ${resumenActual.metricas.complejidades_encontradas.join(' | ')}`, margin, y);
+                    y += 6;
+                }
+
+                y += 4;
             }
 
             // ── Sección 1: Métricas Detalladas ────────────────────────────────
