@@ -1,1 +1,0 @@
-"""OptiCode QA package"""
