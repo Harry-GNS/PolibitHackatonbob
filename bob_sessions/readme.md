@@ -1,78 +1,119 @@
-# OptiCode QA — Auditor Autónomo de Rendimiento y Coste Computacional
+# OptiCode QA — Auditor de rendimiento y coste computacional
 
-## 🎯 1. ¿Qué es nuestro proyecto?
-OptiCode QA es una herramienta de aseguramiento de calidad (QA) enfocada en optimizar el coste computacional y la eficiencia algorítmica del software antes de que vaya a producción. 
+OptiCode QA es una herramienta de QA enfocada en detectar ineficiencias algorítmicas antes de producción y traducirlas a impacto real: tiempo, memoria y coste estimado en infraestructura cloud.
 
-En lugar de hacer lo mismo que el 90% de la competencia (quienes solo explican código o automatizan manuales de usuario genéricos), nosotros atacamos un dolor real en la industria: **el gasto excesivo de servidores en la nube debido a código matemáticamente ineficiente.**
+La idea clave no es que la IA “adivine” todo desde cero. El sistema funciona mejor si separa responsabilidades:
+- IBM Bob IDE produce la teoría de complejidad.
+- El motor local en Python produce la evidencia práctica.
+- watsonx.ai actúa como auditor e integrador final, cruza ambas fuentes y redacta el reporte final.
 
----
+## Arquitectura del flujo
 
-## 🛠️ 2. Arquitectura y Herramientas del Proyecto
-Para que la solución sea viable y no nos gastemos los recursos antes de tiempo, el proyecto se divide en tres capas claras utilizando las siguientes herramientas:
+```text
+[Código Fuente] ──> Analizado manualmente en IBM Bob IDE ──> Archivo .md (Teoría)
+                       │
+[Código Fuente] ──> Ejecutado en Motor Local (Python) ──> JSON/CSV (Práctica)
+                       │
+                       ▼
+               ┌──────────────────────────┐
+               │   AGENTE WATSONX.AI      │
+               │  (Auditor e Integrador)  │
+               └──────────┬───────────────┘
+                       │
+                       ▼
+               [Reporte Final de QA]
+```
 
-### A. Capa de Análisis Teórico (IBM Bob) — **EL NÚCLEO OBLIGATORIO**
-* **Herramienta:** **IBM Bob IDE** (en modo `Advanced` o `Code`).
-* **Qué hace:** Actúa como nuestro Ingeniero de Rendimiento Senior. Bob analiza funciones específicas en Python y determina de forma matemática su **notación de complejidad (Big-O)** (ej. detecta si el código es un ineficiente $O(N^2)$ en lugar de un óptimo $O(N \log N)$). Además, usamos la función nativa **Bob tips** para rastrear en tiempo real las partes más complejas del código.
-* **Estrategia de Bobcoins:** **¡Ojo! Solo tenemos 40 Bobcoins por cuenta.** No le pasen repositorios enteros a Bob. Invoquen a la IA únicamente de forma quirúrgica sobre los archivos o funciones de algoritmos complejos que queremos auditar.
+## Qué hace cada capa
 
-### B. Capa de Motor de QA (Despliegue Local)
-* **Herramienta:** **Nuestro propio entorno local** (Python / Scripts locales).
-* **Qué hace:** Como la guía aclara que las cuentas de la nube no permiten desplegar la solución final, ejecutamos este motor localmente en nuestras máquinas. El script toma el algoritmo analizado y le inyecta vectores de datos simulados a escala exponencial ($N = 10, 100, 1000, 5000$). Mide y registra el **tiempo de ejecución real en milisegundos** y el **pico de memoria RAM**.
+### 1) IBM Bob IDE: capa teórica
+IBM Bob IDE se usa de forma quirúrgica sobre funciones o módulos concretos. Su trabajo es identificar la complejidad matemática, encontrar puntos críticos y exportar la evidencia en Markdown dentro de `bob_sessions`.
 
-### C. Capa de Inteligencia y Reporte Extendido (watsonx.ai) — **OPCIONAL RECOMENDADO**
-* **Herramienta:** **IBM watsonx.ai** (usando la API/SDK en Python conectada a la región de **Dallas**).
-* **Qué hace:** Enviamos las métricas recolectadas localmente a un modelo fundacional pequeño de **IBM Granite** mediante código. El modelo procesa la discrepancia entre la teoría matemática de Bob y la práctica de nuestro script local para redactar las conclusiones del reporte final de QA.
-* **Estrategia de Créditos:** Usamos modelos micro/pequeños porque consumen poquísimos tokens (medidos en Resource Units) y rinden más para estructurar texto plano, protegiendo los **\$80 USD de presupuesto**.
+En esta capa buscamos respuestas como:
+- ¿Cuál es la complejidad Big-O del algoritmo?
+- ¿Dónde está el cuello de botella teórico?
+- ¿Qué optimizaciones lógicas propone Bob?
 
-watsonx-Hackathon WS (watsonx.ai Studio)
-watsonx-Hackathon WML (Watson Machine Learning)
+Importante: no se le pasa todo el repositorio. La estrategia correcta es usar Bob sobre piezas específicas para ahorrar Bobcoins y mantener el análisis enfocado.
 
----
+### 2) Motor local en Python: capa práctica
+El motor local ejecuta los algoritmos con distintos tamaños de entrada y mide:
+- tiempo de ejecución en milisegundos,
+- pico de memoria RAM,
+- resultados exportables en JSON o CSV.
 
-## 📋 3. ¿Qué tiene que hacer cada miembro del equipo? (Flujo de Trabajo)
+Esta capa responde a una pregunta distinta a Bob: no “qué debería pasar” en teoría, sino “qué está pasando de verdad” en el entorno de ejecución.
 
-1. **Aislar e Identificar:** Escoger del repositorio un conjunto de algoritmos complejos de procesamiento o búsquedas (ej. del material de laboratorios) para usarlos como conejillos de indias.
-2. **Auditar con Bob:** Abrir esos archivos en **Bob IDE**, pedirle el análisis Big-O y capturar las optimizaciones lógicas sugeridas.
-3. **Correr Pruebas de Carga:** Pasar esas funciones por nuestro script local de medición para obtener las curvas de tiempo reales y picos de RAM.
-4. **Exportar Evidencias para el Jurado (¡VITAL!):**
-   * Antes de hacer nada, **limpien todas las credenciales y API Keys del código** para evitar que Seguridad de IBM nos suspenda la cuenta.
-   * Creen una carpeta en la raíz llamada **`bob_sessions`**.
-   * En el chat de Bob IDE, vayan a *History*, abran las tareas del proyecto, desplieguen el cuadro de consumo del encabezado y tomen una **captura de pantalla**.
-   * En esa misma vista, hagan clic en **Export task history** para guardar las conversaciones con la IA en formato Markdown (`.md`).
-   * Suban todas las capturas y archivos `.md` dentro de la carpeta `bob_sessions`. **Si no está esa carpeta, el jurado nos descalifica.**
+### 3) watsonx.ai vía API: capa de auditoría e integración
+El agente de watsonx.ai no debe analizar el código desde cero. Su rol es más útil si se convierte en el integrador inteligente del proyecto.
 
----
+Recibe tres entradas:
+1. El código original.
+2. El reporte de complejidad generado por Bob.
+3. Las métricas reales del motor local.
 
-## 📦 4. Entregables Finales de la Sumisión
-Para cumplir con las reglas estrictas de Lablab.ai, debemos tener listos:
-1. **Descripción del Producto:** (Este mismo enfoque de OptiCode QA).
-2. **Repositorio de GitHub:** Estrictamente **PÚBLICO** (si es privado, restan puntos), incluyendo el código del motor local y la carpeta obligatoria `bob_sessions`.
-3. **Video de Presentación / Demo:** Con una duración máxima e improrrogable de **5 minutos**.
+Con eso, el agente debe:
+- comparar teoría vs práctica,
+- detectar discrepancias y posibles cuellos de botella ocultos,
+- estimar impacto financiero aproximado en servicios cloud,
+- estructurar el reporte final de QA para el jurado o cliente.
 
-## Estructura de Carpetas
+Esto es mejor que pedirle al modelo que analice todo desde cero porque:
+- consume menos tokens y menos recursos,
+- hace que Bob siga siendo el núcleo formal del análisis,
+- convierte a watsonx.ai en un agente real, no solo en un generador de texto.
 
+## Flujo de trabajo del equipo
+
+1. Elegir uno o varios algoritmos relevantes del repositorio.
+2. Auditar esos fragmentos en IBM Bob IDE y guardar la salida en `bob_sessions`.
+3. Ejecutarlos en el motor local para capturar tiempo y memoria.
+4. Pasar teoría + práctica al agente de watsonx.ai para que genere el diagnóstico final.
+5. Exportar el reporte final y reunir todas las evidencias en el repositorio público.
+
+## Reparto sugerido para 4 personas
+
+- Persona 1: selección de algoritmos y limpieza del código de credenciales.
+- Persona 2: auditoría manual en Bob IDE y exportación de sesiones.
+- Persona 3: motor local de benchmarks y exportación de métricas.
+- Persona 4: integración con watsonx.ai, reporte final y video demo.
+
+## Entregables mínimos
+
+- Código fuente limpio y reproducible.
+- Carpeta `bob_sessions` con `.md` y capturas de Bob IDE.
+- Archivo de métricas generado por el motor local.
+- `REPORTE_FINAL_QA.md` con el diagnóstico final.
+- Repositorio público para la entrega.
+- Video demo de hasta 5 minutos.
+
+## Estructura esperada de carpetas
+
+```text
 opticode-qa/
-│
-├── .gitignore               # Ignorar entornos virtuales y el archivo .env con credenciales
-├── README.md                # El resumen en formato consola que les armé para el equipo
-├── requirements.txt         # Librerías (networkx, matplotlib, ibm-watsonx-ai, python-dotenv)
-│
-├── bob_sessions/            # ¡OBLIGATORIA! Aquí suben capturas de consumo e historiales (.md)
+├── .gitignore
+├── .env
+├── README.md
+├── requirements.txt
+├── bob_sessions/
 │   ├── sesion_dfs_historico.md
 │   ├── consumo_bob_ide_1.png
 │   └── sesion_optimizacion.md
-│
-├── src/                     # Código fuente de nuestra aplicación
+├── src/
 │   ├── __init__.py
-│   ├── algoritmos.py        # Tu código base actual (Grafos, DFS, IDFS, etc.)
-│   ├── motor_qa.py          # Script local encargado de medir tiempo, RAM y exportar JSON
-│   └── integrador_watsonx.py# Script que llama a la API de Granite usando tu WML Credentials
-│
-├── data/                    # Entrada y salida de datos locales
-│   ├── grafos_prueba.json   # Sets de datos o configuraciones de grafos
-│   └── metricas_salida.json # El JSON final generado por el motor_qa
-│
-└── output/                  # Los entregables listos que genera el Agente Integrador
-    ├── diagramas/           # Los mapas y flujos de matplotlib guardados
-    └── REPORTE_FINAL_QA.md  # El Markdown definitivo estructurado por watsonx.ai
+│   ├── algoritmos.py
+│   ├── motor_qa.py
+│   └── integrador_watsonx.py
+├── data/
+│   ├── grafos_prueba.json
+│   └── metricas_salida.json
+└── output/
+   ├── diagramas/
+   └── REPORTE_FINAL_QA.md
+```
+
+## Nota operativa
+
+Antes de subir el proyecto al repositorio público, elimina cualquier clave real y deja las credenciales solo en `.env`. Ese archivo no debe compartirse.
+
 
