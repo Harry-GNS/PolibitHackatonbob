@@ -6,6 +6,7 @@
     <title>OptiCode QA — Panel del Auditor</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -342,6 +343,92 @@
             color: var(--text-secondary);
         }
 
+        .report-toolbar {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .report-viewer {
+            background: var(--white);
+            border: 1px solid var(--gray-border);
+            border-radius: 6px;
+            padding: 1.25rem;
+            box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
+            max-height: 520px;
+            overflow: auto;
+        }
+
+        .report-viewer h1,
+        .report-viewer h2,
+        .report-viewer h3,
+        .report-viewer h4 {
+            text-transform: none;
+            letter-spacing: normal;
+            margin: 1rem 0 0.6rem;
+        }
+
+        .report-viewer h1 { font-size: 1.5rem; }
+        .report-viewer h2 { font-size: 1.2rem; }
+        .report-viewer h3 { font-size: 1.05rem; }
+
+        .report-viewer p,
+        .report-viewer li,
+        .report-viewer blockquote {
+            line-height: 1.65;
+            color: var(--text-primary);
+        }
+
+        .report-viewer pre {
+            background: #0A1020;
+            color: #EEF4FF;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow: auto;
+            margin: 0.9rem 0;
+        }
+
+        .report-viewer code {
+            background: var(--gray-light);
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+        }
+
+        .report-viewer pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        .report-viewer table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.9rem 0;
+        }
+
+        .report-viewer th,
+        .report-viewer td {
+            border: 1px solid var(--gray-border);
+            padding: 0.55rem 0.7rem;
+            text-align: left;
+        }
+
+        .report-viewer thead {
+            background: var(--bg-secondary);
+        }
+
+        .report-meta {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.6rem;
+        }
+
+        .report-placeholder {
+            color: var(--text-secondary);
+            padding: 1rem 0;
+        }
+
         @media (max-width: 1200px) {
             main {
                 grid-template-columns: 200px 1fr;
@@ -438,6 +525,23 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- REPORTE FINAL -->
+            <div class="content-section">
+                <h2 class="section-title">📄 Reporte Final</h2>
+                <div class="report-toolbar">
+                    <button class="sidebar-button" id="downloadReportBtn" disabled onclick="descargarReporteMd()">
+                        ⬇ Descargar MD
+                    </button>
+                    <button class="sidebar-button" id="openReportBtn" disabled onclick="recargarReporteDashboard()">
+                        🔄 Ver en dashboard
+                    </button>
+                </div>
+                <div class="report-meta" id="reportMeta">Todavía no hay reporte cargado.</div>
+                <div class="report-viewer" id="reportViewer">
+                    <div class="report-placeholder">Ejecuta el flujo para ver aquí el reporte formateado.</div>
                 </div>
             </div>
         </div>

@@ -3,7 +3,7 @@
 Flujo: Bob IDE (manual) → Motor Local → watsonx.ai
 """
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 from flask_cors import CORS
 from pathlib import Path
 import json
@@ -480,6 +480,26 @@ def descargar_reporte(nombre):
             "contenido": contenido
         })
     
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/reportes/<nombre>/descargar', methods=['GET'])
+def descargar_reporte_md(nombre):
+    """Descarga un reporte específico como archivo .md."""
+    try:
+        ruta = OUTPUT_DIR / nombre
+
+        if not ruta.exists():
+            return jsonify({"error": f"Reporte no encontrado: {nombre}"}), 404
+
+        return send_file(
+            ruta,
+            as_attachment=True,
+            download_name=nombre,
+            mimetype='text/markdown; charset=utf-8'
+        )
+
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

@@ -5,6 +5,7 @@ let chartTiempo = null;
 let chartMemoria = null;
 let metricsData = {};
 let alertasActuales = [];
+let ultimoReporteNombre = '';
 
 document.addEventListener('DOMContentLoaded', () => {
     listarAnalisisBob();
@@ -108,21 +109,18 @@ async function ejecutarTodo() {
         if (data.success) {
             metricsData = data.metricas;
             alertasActuales = data.alertas || [];
+            ultimoReporteNombre = data.archivo_reporte ? data.archivo_reporte.split(/[/\\]/).pop() : '';
 
             actualizarGraficos();
             actualizarTabla();
             actualizarAlertas();
+            await cargarReporteEnDashboard(ultimoReporteNombre);
 
             log('✅ Flujo completo ejecutado exitosamente', 'success');
             badge.textContent = 'Proceso Completado ✓';
             badge.className = 'status-badge';
-
-            if (data.archivo_reporte) {
-                const archivo = data.archivo_reporte.split(/[/\\]/).pop();
-                if (archivo) {
-                    window.open(`/api/reportes/${encodeURIComponent(archivo)}`, '_blank');
-                }
-            }
+            document.getElementById('downloadReportBtn').disabled = !ultimoReporteNombre;
+            document.getElementById('openReportBtn').disabled = !ultimoReporteNombre;
         } else {
             throw new Error(data.error);
         }
@@ -132,6 +130,45 @@ async function ejecutarTodo() {
     } finally {
         btn.disabled = false;
     }
+}
+
+async function cargarReporteEnDashboard(nombreArchivo) {
+    if (!nombreArchivo) return;
+
+    const reportViewer = document.getElementById('reportViewer');
+    const reportMeta = document.getElementById('reportMeta');
+    reportMeta.textContent = `Cargando ${nombreArchivo}...`;
+    reportViewer.innerHTML = '<div class="report-placeholder">Cargando reporte...</div>';
+
+    try {
+        const response = await fetch(`/api/reportes/${encodeURIComponent(nombreArchivo)}`);
+        const data = await response.json();
+
+        if (!data.success || !data.contenido) {
+            throw new Error(data.error || 'No se pudo cargar el reporte');
+        }
+
+        if (typeof marked === 'undefined') {
+            throw new Error('La librería Markdown no está disponible');
+        }
+
+        reportMeta.textContent = `Reporte cargado: ${nombreArchivo}`;
+        reportViewer.innerHTML = marked.parse(data.contenido);
+    } catch (error) {
+        reportMeta.textContent = `Error cargando reporte: ${error.message}`;
+        reportViewer.innerHTML = `<div class="report-placeholder">${error.message}</div>`;
+        log(`❌ ${error.message}`, 'error');
+    }
+}
+
+function descargarReporteMd() {
+    if (!ultimoReporteNombre) return;
+    window.location.href = `/api/reportes/${encodeURIComponent(ultimoReporteNombre)}/descargar`;
+}
+
+function recargarReporteDashboard() {
+    if (!ultimoReporteNombre) return;
+    cargarReporteEnDashboard(ultimoReporteNombre);
 }
 
 function actualizarGraficos() {
