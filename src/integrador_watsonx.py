@@ -31,7 +31,7 @@ def cargar_contexto():
             ruta_teoria = archivos_md[0]
 
     if not ruta_teoria or not ruta_practica.exists():
-        print("❌ Error: Asegúrate de tener el reporte Markdown y el archivo metricas_salida.json listos.")
+        print("Error: Asegúrate de tener el reporte Markdown y el archivo metricas_salida.json listos.")
         sys.exit(1)
 
     print(f"📄 Leyendo reporte teórico desde: {ruta_teoria.name}")
@@ -79,7 +79,7 @@ Por favor, genera tu respuesta en un formato Markdown impecable y ejecutivo.
     client = APIClient(credentials)
     
     # Cambiado al modelo Llama 3.3 70B que sí está soportado y es súper potente
-    model_id = "meta-llama/llama-3-3-70b-instruct" 
+    model_id = "ibm/granite-8b-code-instruct" 
     
     parameters = {
         "decoding_method": "greedy",
