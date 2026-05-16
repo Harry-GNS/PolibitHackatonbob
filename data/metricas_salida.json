@@ -1,44 +1,60 @@
 {
   "benchmarks": {
     "10": {
-      "time_ms_mean": 0.15,
-      "time_ms_samples": [0.14, 0.16, 0.15],
-      "mem_bytes_peak_mean": 2400,
-      "mem_bytes_peak_samples": [2400, 2400, 2400],
-      "funcion": "dfs",
-      "notas": "Pequeño conjunto de datos"
+      "time_ms_mean": 0.20760000006703194,
+      "time_ms_samples": [
+        0.32250000003841706,
+        0.1916999999593827,
+        0.10860000020329608
+      ],
+      "mem_bytes_peak_mean": 3472,
+      "mem_bytes_peak_samples": [
+        3472,
+        3472,
+        3472
+      ]
     },
     "100": {
-      "time_ms_mean": 1.52,
-      "time_ms_samples": [1.48, 1.56, 1.52],
-      "mem_bytes_peak_mean": 24000,
-      "mem_bytes_peak_samples": [24000, 24000, 24000],
-      "funcion": "dfs",
-      "notas": "Conjunto intermedio"
+      "time_ms_mean": 0.9081666668559288,
+      "time_ms_samples": [
+        0.872200000230805,
+        0.6462000001192791,
+        1.2061000002177025
+      ],
+      "mem_bytes_peak_mean": 29088,
+      "mem_bytes_peak_samples": [
+        29088,
+        29088,
+        29088
+      ]
     },
     "1000": {
-      "time_ms_mean": 15.2,
-      "time_ms_samples": [15.0, 15.4, 15.2],
-      "mem_bytes_peak_mean": 240000,
-      "mem_bytes_peak_samples": [240000, 240000, 240000],
-      "funcion": "dfs",
-      "notas": "Conjunto grande"
+      "time_ms_mean": 6.2447999998767045,
+      "time_ms_samples": [
+        8.647999999993772,
+        5.320599999777187,
+        4.765799999859155
+      ],
+      "mem_bytes_peak_mean": 254488,
+      "mem_bytes_peak_samples": [
+        193984,
+        284704,
+        284776
+      ]
     },
     "5000": {
-      "time_ms_mean": 152.0,
-      "time_ms_samples": [150.0, 154.0, 152.0],
-      "mem_bytes_peak_mean": 2400000,
-      "mem_bytes_peak_samples": [2400000, 2400000, 2400000],
-      "funcion": "dfs",
-      "notas": "Conjunto muy grande"
+      "time_ms_mean": 21.20896666671494,
+      "time_ms_samples": [
+        21.871099999771104,
+        20.06210000035935,
+        21.69370000001436
+      ],
+      "mem_bytes_peak_mean": 832515,
+      "mem_bytes_peak_samples": [
+        827390,
+        861484,
+        808672
+      ]
     }
-  },
-  "resumen": {
-    "algoritmo": "DFS (Depth-First Search)",
-    "archivo_origen": "src/algoritmos.py",
-    "fecha_ejecucion": "2026-05-16T15:45:00",
-    "repeticiones_por_tamaño": 3,
-    "complejidad_observada": "O(N)",
-    "observaciones": "Crecimiento lineal perfecto. No hay anomalías detectadas."
   }
 }

@@ -3,7 +3,7 @@
 Flujo: Bob IDE (manual) → Motor Local → watsonx.ai
 """
 
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from pathlib import Path
 import json
@@ -18,7 +18,12 @@ sys.path.insert(0, str(ROOT))
 from motor_qa import run_benchmarks
 from integrador_watsonx import summarize_metrics
 
-app = Flask(__name__, template_folder=str(ROOT / "templates"))
+# Usar nueva estructura frontend/
+app = Flask(
+    __name__,
+    template_folder=str(ROOT / "frontend" / "templates"),
+    static_folder=str(ROOT / "frontend" / "static")
+)
 CORS(app)
 
 # Directorio de análisis de Bob IDE - USAR SOLO output/informesbob
@@ -59,7 +64,7 @@ def listar_bob_sessions():
                 if 'README' in archivo.name:
                     continue
                     
-                contenido = archivo.read_text(encoding='utf-8')
+                contenido = archivo.read_text(encoding='utf-8-sig')
                 archivos.append({
                     "nombre": archivo.name,
                     "contenido_preview": contenido[:200],
@@ -86,7 +91,7 @@ def obtener_bob_analysis(nombre):
         if not ruta.exists():
             return jsonify({"error": f"Archivo no encontrado: {nombre}"}), 404
         
-        contenido = ruta.read_text(encoding='utf-8')
+        contenido = ruta.read_text(encoding='utf-8-sig')
         
         return jsonify({
             "success": True,
@@ -110,7 +115,7 @@ def listar_codigos():
                 if archivo.name.startswith('__'):
                     continue
                     
-                contenido = archivo.read_text(encoding='utf-8')
+                contenido = archivo.read_text(encoding='utf-8-sig')
                 archivos.append({
                     "nombre": archivo.name,
                     "ruta": f"src/{archivo.name}",
@@ -124,7 +129,7 @@ def listar_codigos():
                 if archivo.name.startswith('__'):
                     continue
                     
-                contenido = archivo.read_text(encoding='utf-8')
+                contenido = archivo.read_text(encoding='utf-8-sig')
                 archivos.append({
                     "nombre": archivo.name,
                     "ruta": f"src/examples/{archivo.name}",
@@ -184,23 +189,8 @@ def ejecutar_benchmarks():
                 "error": "No se generó archivo de métricas"
             }), 500
         
-        metricas_raw = json.loads(metricas_path.read_text(encoding='utf-8'))
-        benchmarks = metricas_raw.get('benchmarks', {})
-        
-        # Procesar para formato visual
-        metricas_procesadas = {}
-        for size_str, metrics in benchmarks.items():
-            size = int(size_str)
-            metricas_procesadas[size] = {
-                'n': size,
-                'time_ms': round(metrics['time_ms_mean'], 2),
-                'memory_mb': round(metrics['mem_bytes_peak_mean'] / (1024 * 1024), 2),
-                'samples_time': [round(t, 2) for t in metrics.get('time_ms_samples', [])],
-                'samples_memory': [round(m / (1024 * 1024), 2) for m in metrics.get('mem_bytes_peak_samples', [])]
-            }
-        
-        # Detectar alertas de rendimiento
-        alertas = detectar_alertas(metricas_procesadas)
+        metricas_raw = json.loads(metricas_path.read_text(encoding='utf-8-sig'))
+        metricas_procesadas, alertas = procesar_metricas_json(metricas_raw)
         
         return jsonify({
             "success": True,
@@ -214,6 +204,54 @@ def ejecutar_benchmarks():
         return jsonify({
             "success": False,
             "error": f"❌ Error en benchmarks: {str(e)}",
+            "traceback": traceback.format_exc()
+        }), 500
+
+
+@app.route('/api/ejecutar-todo', methods=['POST'])
+def ejecutar_todo():
+    """Ejecuta benchmarks, integra con watsonx y genera el reporte final."""
+    try:
+        data = request.get_json(silent=True) or {}
+
+        if 'bob_analysis_file' not in data:
+            return jsonify({"error": "Falta campo 'bob_analysis_file'"}), 400
+
+        bob_file = data['bob_analysis_file']
+        bob_path = BOB_SESSIONS_DIR / bob_file
+        if not bob_path.exists():
+            return jsonify({"error": f"❌ Archivo Bob no encontrado: {bob_file}"}), 404
+
+        print("⚡ Iniciando flujo completo: benchmarks + integración + reporte")
+
+        run_benchmarks()
+
+        metricas_path = DATA_DIR / "metricas_salida.json"
+        if not metricas_path.exists():
+            return jsonify({"success": False, "error": "No se generó archivo de métricas"}), 500
+
+        metricas_raw = json.loads(metricas_path.read_text(encoding='utf-8-sig'))
+        metricas_procesadas, alertas = procesar_metricas_json(metricas_raw)
+
+        bob_analysis = bob_path.read_text(encoding='utf-8-sig')
+        resultado_watsonx = summarize_metrics(bob_analysis)
+
+        reporte_path, _ = generar_reporte_final(bob_analysis, metricas_raw, resultado_watsonx)
+
+        return jsonify({
+            "success": True,
+            "mensaje": "✅ Flujo completo ejecutado exitosamente",
+            "metricas": metricas_procesadas,
+            "alertas": alertas,
+            "archivo_reporte": str(reporte_path),
+            "resumen_watsonx": resultado_watsonx or "Resumen disponible después de integración completa",
+            "timestamp": datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"❌ Error en flujo completo: {str(e)}",
             "traceback": traceback.format_exc()
         }), 500
 
@@ -302,37 +340,27 @@ def detectar_alertas(metricas):
     return alertas
 
 
-@app.route('/api/integrar-watsonx', methods=['POST'])
-def integrar_watsonx():
-    """Integra análisis de Bob IDE + benchmarks con watsonx.ai."""
-    try:
-        data = request.get_json()
-        
-        if not data or 'bob_analysis_file' not in data:
-            return jsonify({"error": "Falta campo 'bob_analysis_file'"}), 400
-        
-        bob_file = data['bob_analysis_file']
-        codigo = data.get('codigo', '')
-        
-        # Cargar análisis de Bob
-        bob_path = BOB_SESSIONS_DIR / bob_file
-        if not bob_path.exists():
-            return jsonify({"error": f"❌ Archivo Bob no encontrado: {bob_file}"}), 404
-        
-        bob_analysis = bob_path.read_text(encoding='utf-8')
-        
-        # Cargar métricas locales
-        metricas_path = DATA_DIR / "metricas_salida.json"
-        metricas = {}
-        if metricas_path.exists():
-            metricas = json.loads(metricas_path.read_text(encoding='utf-8'))
-        
-        # Enviar a watsonx.ai
-        print("🔗 Integrando con watsonx.ai...")
-        resultado_watsonx = summarize_metrics(bob_analysis)
-        
-        # Generar reporte final
-        reporte_final = f"""# 📊 REPORTE FINAL QA — OptiCode
+def procesar_metricas_json(metricas_raw):
+    """Convierte el JSON bruto de benchmarks al formato usado por la GUI."""
+    benchmarks = metricas_raw.get('benchmarks', {}) if metricas_raw else {}
+
+    metricas_procesadas = {}
+    for size_str, metrics in benchmarks.items():
+        size = int(size_str)
+        metricas_procesadas[size] = {
+            'n': size,
+            'time_ms': round(metrics['time_ms_mean'], 2),
+            'memory_mb': round(metrics['mem_bytes_peak_mean'] / (1024 * 1024), 2),
+            'samples_time': [round(t, 2) for t in metrics.get('time_ms_samples', [])],
+            'samples_memory': [round(m / (1024 * 1024), 2) for m in metrics.get('mem_bytes_peak_samples', [])]
+        }
+
+    return metricas_procesadas, detectar_alertas(metricas_procesadas)
+
+
+def generar_reporte_final(bob_analysis, metricas, resultado_watsonx):
+    """Genera y guarda el reporte final consolidado."""
+    reporte_final = f"""# 📊 REPORTE FINAL QA — OptiCode
 
 ## 🔍 Análisis de Bob IDE
 
@@ -357,10 +385,43 @@ def integrar_watsonx():
 **Generado automáticamente por OptiCode QA**
 **Fecha:** {datetime.now().isoformat()}
 """
+
+    reporte_path = OUTPUT_DIR / "REPORTE_FINAL_QA.md"
+    reporte_path.write_text(reporte_final, encoding='utf-8')
+    return reporte_path, reporte_final
+
+
+@app.route('/api/integrar-watsonx', methods=['POST'])
+def integrar_watsonx():
+    """Integra análisis de Bob IDE + benchmarks con watsonx.ai."""
+    try:
+        data = request.get_json()
         
-        # Guardar reporte
-        reporte_path = OUTPUT_DIR / "REPORTE_FINAL_QA.md"
-        reporte_path.write_text(reporte_final, encoding='utf-8')
+        if not data or 'bob_analysis_file' not in data:
+            return jsonify({"error": "Falta campo 'bob_analysis_file'"}), 400
+        
+        bob_file = data['bob_analysis_file']
+        codigo = data.get('codigo', '')
+        
+        # Cargar análisis de Bob
+        bob_path = BOB_SESSIONS_DIR / bob_file
+        if not bob_path.exists():
+            return jsonify({"error": f"❌ Archivo Bob no encontrado: {bob_file}"}), 404
+        
+        bob_analysis = bob_path.read_text(encoding='utf-8-sig')
+        
+        # Cargar métricas locales
+        metricas_path = DATA_DIR / "metricas_salida.json"
+        metricas = {}
+        if metricas_path.exists():
+            metricas = json.loads(metricas_path.read_text(encoding='utf-8-sig'))
+        
+        # Enviar a watsonx.ai
+        print("🔗 Integrando con watsonx.ai...")
+        resultado_watsonx = summarize_metrics(bob_analysis)
+        
+        # Generar reporte final
+        reporte_path, _ = generar_reporte_final(bob_analysis, metricas, resultado_watsonx)
         
         return jsonify({
             "success": True,
@@ -385,7 +446,7 @@ def listar_reportes():
         
         if OUTPUT_DIR.exists():
             for archivo in sorted(OUTPUT_DIR.glob('*.md')):
-                contenido = archivo.read_text(encoding='utf-8')
+                contenido = archivo.read_text(encoding='utf-8-sig')
                 reportes.append({
                     "nombre": archivo.name,
                     "contenido_preview": contenido[:300],
@@ -411,7 +472,7 @@ def descargar_reporte(nombre):
         if not ruta.exists():
             return jsonify({"error": f"Reporte no encontrado: {nombre}"}), 404
         
-        contenido = ruta.read_text(encoding='utf-8')
+        contenido = ruta.read_text(encoding='utf-8-sig')
         
         return jsonify({
             "success": True,

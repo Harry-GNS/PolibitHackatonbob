@@ -31,7 +31,8 @@ def run_benchmarks():
     if not graph_file.exists():
         print('No se encontró', graph_file)
         return
-    with open(graph_file, 'r', encoding='utf-8') as f:
+    # Usar utf-8-sig para evitar errores con archivos que contienen BOM
+    with open(graph_file, 'r', encoding='utf-8-sig') as f:
         graph = json.load(f)
 
     sizes = [10, 100, 1000, 5000]
