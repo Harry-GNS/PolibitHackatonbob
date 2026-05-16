@@ -1,0 +1,4 @@
+networkx
+matplotlib
+ibm-watsonx-ai
+python-dotenv

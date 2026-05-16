@@ -49,5 +49,30 @@ Para cumplir con las reglas estrictas de Lablab.ai, debemos tener listos:
 2. **Repositorio de GitHub:** Estrictamente **PÚBLICO** (si es privado, restan puntos), incluyendo el código del motor local y la carpeta obligatoria `bob_sessions`.
 3. **Video de Presentación / Demo:** Con una duración máxima e improrrogable de **5 minutos**.
 
-## Usar
+## Estructura de Carpetas
+
+opticode-qa/
+│
+├── .gitignore               # Ignorar entornos virtuales y el archivo .env con credenciales
+├── README.md                # El resumen en formato consola que les armé para el equipo
+├── requirements.txt         # Librerías (networkx, matplotlib, ibm-watsonx-ai, python-dotenv)
+│
+├── bob_sessions/            # ¡OBLIGATORIA! Aquí suben capturas de consumo e historiales (.md)
+│   ├── sesion_dfs_historico.md
+│   ├── consumo_bob_ide_1.png
+│   └── sesion_optimizacion.md
+│
+├── src/                     # Código fuente de nuestra aplicación
+│   ├── __init__.py
+│   ├── algoritmos.py        # Tu código base actual (Grafos, DFS, IDFS, etc.)
+│   ├── motor_qa.py          # Script local encargado de medir tiempo, RAM y exportar JSON
+│   └── integrador_watsonx.py# Script que llama a la API de Granite usando tu WML Credentials
+│
+├── data/                    # Entrada y salida de datos locales
+│   ├── grafos_prueba.json   # Sets de datos o configuraciones de grafos
+│   └── metricas_salida.json # El JSON final generado por el motor_qa
+│
+└── output/                  # Los entregables listos que genera el Agente Integrador
+    ├── diagramas/           # Los mapas y flujos de matplotlib guardados
+    └── REPORTE_FINAL_QA.md  # El Markdown definitivo estructurado por watsonx.ai
 
