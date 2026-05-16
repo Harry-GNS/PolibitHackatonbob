@@ -364,6 +364,9 @@
         <aside>
             <div class="sidebar-section">
                 <div class="sidebar-section-title">📊 Análisis Bob IDE</div>
+                <small style="color: var(--text-secondary); font-size: 0.7rem; display: block; margin-bottom: 0.5rem;">
+                    📁 Carpeta: output/informesbob/
+                </small>
                 <select class="sidebar-input" id="bobAnalysisSelect" onchange="cargarAnalisisBob()">
                     <option value="">Seleccionar...</option>
                 </select>
@@ -493,9 +496,9 @@
                         option.textContent = archivo.nombre.replace('.md', '');
                         select.appendChild(option);
                     });
-                    log(`✅ Cargados ${data.total} análisis de Bob IDE`, 'success');
+                    log(`✅ Cargados ${data.total} análisis desde output/informesbob/`, 'success');
                 } else {
-                    log('ℹ️ Sin análisis de Bob IDE disponibles', 'warning');
+                    log('ℹ️ Sin análisis en output/informesbob/ disponibles', 'warning');
                 }
             } catch (error) {
                 log(`❌ Error: ${error.message}`, 'error');

@@ -21,7 +21,8 @@ from integrador_watsonx import summarize_metrics
 app = Flask(__name__, template_folder=str(ROOT / "templates"))
 CORS(app)
 
-BOB_SESSIONS_DIR = ROOT / "bob_sessions"
+# Directorio de análisis de Bob IDE - USAR SOLO output/informesbob
+BOB_SESSIONS_DIR = ROOT / "output" / "informesbob"
 OUTPUT_DIR = ROOT / "output"
 DATA_DIR = ROOT / "data"
 SRC_DIR = ROOT / "src"
