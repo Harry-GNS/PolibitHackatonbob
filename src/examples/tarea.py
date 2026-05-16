@@ -111,17 +111,7 @@ def idfs(grafo, inicio, objetivo, limite_maximo):
             return resultado
     return None
 
-# ==========================================
-# BLOQUE DE EJECUCIÓN (PRUEBAS)
-# ==========================================
+
 if __name__ == "__main__":
-    # Prueba de DFS buscando 'M'
     dfs(grafo_d7, 'A', 'M')
-    
-    # Prueba de IDFS buscando 'M' (con límite 3 es suficiente)
     idfs(grafo_d7, 'A', 'M', limite_maximo=3)
-
-
-
-
-    

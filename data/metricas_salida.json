@@ -1,0 +1,44 @@
+{
+  "benchmarks": {
+    "10": {
+      "time_ms_mean": 0.15,
+      "time_ms_samples": [0.14, 0.16, 0.15],
+      "mem_bytes_peak_mean": 2400,
+      "mem_bytes_peak_samples": [2400, 2400, 2400],
+      "funcion": "dfs",
+      "notas": "Pequeño conjunto de datos"
+    },
+    "100": {
+      "time_ms_mean": 1.52,
+      "time_ms_samples": [1.48, 1.56, 1.52],
+      "mem_bytes_peak_mean": 24000,
+      "mem_bytes_peak_samples": [24000, 24000, 24000],
+      "funcion": "dfs",
+      "notas": "Conjunto intermedio"
+    },
+    "1000": {
+      "time_ms_mean": 15.2,
+      "time_ms_samples": [15.0, 15.4, 15.2],
+      "mem_bytes_peak_mean": 240000,
+      "mem_bytes_peak_samples": [240000, 240000, 240000],
+      "funcion": "dfs",
+      "notas": "Conjunto grande"
+    },
+    "5000": {
+      "time_ms_mean": 152.0,
+      "time_ms_samples": [150.0, 154.0, 152.0],
+      "mem_bytes_peak_mean": 2400000,
+      "mem_bytes_peak_samples": [2400000, 2400000, 2400000],
+      "funcion": "dfs",
+      "notas": "Conjunto muy grande"
+    }
+  },
+  "resumen": {
+    "algoritmo": "DFS (Depth-First Search)",
+    "archivo_origen": "src/algoritmos.py",
+    "fecha_ejecucion": "2026-05-16T15:45:00",
+    "repeticiones_por_tamaño": 3,
+    "complejidad_observada": "O(N)",
+    "observaciones": "Crecimiento lineal perfecto. No hay anomalías detectadas."
+  }
+}
