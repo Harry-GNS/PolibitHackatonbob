@@ -1,0 +1,6 @@
+flask==3.0.0
+flask-cors==4.0.0
+networkx==3.2.1
+matplotlib>=3.10.0
+ibm-watsonx-ai
+python-dotenv

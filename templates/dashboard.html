@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiCode QA — Panel del Auditor</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white: #FFFFFF;
+            --bg-secondary: #F4F6F8;
+            --text-primary: #161616;
+            --text-secondary: #525252;
+            --blue-primary: #0F62FE;
+            --blue-hover: #0353E9;
+            --orange-alert: #E66000;
+            --red-error: #DA1E28;
+            --green-success: #24A148;
+            --gray-border: #E0E3E6;
+            --gray-light: #F9FAFB;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: "JetBrains Mono", monospace;
+            background: var(--white);
+            color: var(--text-primary);
+        }
+
+        body { display: flex; flex-direction: column; overflow: hidden; }
+
+        header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-border);
+            padding: 1.2rem 2rem;
+            box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            flex: 1;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge.running {
+            background: var(--blue-primary);
+            color: var(--white);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+        main {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        aside {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--gray-border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            margin-bottom: 0.7rem;
+            font-weight: 700;
+        }
+
+        .sidebar-input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.82rem;
+            background: var(--white);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .sidebar-input:focus { outline: none; border-color: var(--blue-primary); }
+
+        /* Code preview box */
+        .code-preview {
+            margin-top: 0.6rem;
+            background: #0A1020;
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            padding: 0.7rem;
+            font-size: 0.72rem;
+            color: #A8C7FA;
+            line-height: 1.5;
+            max-height: 140px;
+            overflow-y: auto;
+            white-space: pre;
+            display: none;
+        }
+
+        .code-preview.visible { display: block; }
+
+        .sidebar-button {
+            width: 100%;
+            padding: 0.65rem 0.8rem;
+            margin-bottom: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--blue-primary);
+            color: var(--white);
+        }
+
+        .sidebar-button:hover:not(:disabled) {
+            background: var(--blue-hover);
+            box-shadow: 0 4px 8px rgba(15,98,254,0.3);
+        }
+
+        .sidebar-button:disabled {
+            background: var(--gray-border);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .sidebar-button.btn-pdf {
+            background: #24A148;
+        }
+
+        .sidebar-button.btn-pdf:hover:not(:disabled) {
+            background: #198038;
+            box-shadow: 0 4px 8px rgba(36,161,72,0.3);
+        }
+
+        /* CONTENT */
+        .content { padding: 1.5rem; overflow-y: auto; }
+
+        .content-section { margin-bottom: 2rem; }
+
+        .section-title {
+            font-size: 0.92rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--blue-primary);
+            padding-bottom: 0.5rem;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.5rem; }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--gray-border);
+            border-radius: 6px;
+            padding: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .chart-container { position: relative; height: 240px; }
+
+        .metrics-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+        .metrics-table thead { background: var(--bg-secondary); border-bottom: 1px solid var(--gray-border); }
+        .metrics-table th { padding: 0.65rem 0.8rem; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.2px; }
+        .metrics-table tbody tr:nth-child(odd) { background: var(--gray-light); }
+        .metrics-table tbody tr { border-bottom: 1px solid var(--gray-border); }
+        .metrics-table td { padding: 0.65rem 0.8rem; }
+
+        .value-good   { color: var(--green-success); font-weight: 600; }
+        .value-warning{ color: var(--orange-alert);  font-weight: 600; }
+        .value-error  { color: var(--red-error);     font-weight: 600; }
+
+        /* RIGHT PANEL */
+        .log-panel {
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--gray-border);
+            padding: 1.2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .log-console {
+            background: #0A1020;
+            border: 1px solid var(--gray-border);
+            border-radius: 4px;
+            padding: 0.8rem;
+            font-size: 0.78rem;
+            color: #EEF4FF;
+            flex: 1;
+            min-height: 180px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .log-line { margin: 2px 0; }
+        .log-success { color: var(--green-success); }
+        .log-error   { color: var(--red-error); }
+        .log-warning { color: var(--orange-alert); }
+        .log-info    { color: #60A5FA; }
+        .log-timestamp { color: #8D99B5; }
+
+        /* ALERTS */
+        .alerts-container { max-height: 280px; overflow-y: auto; }
+
+        .alert {
+            padding: 0.7rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid;
+            border-radius: 2px;
+            background: var(--gray-light);
+            font-size: 0.8rem;
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .alert-icon { font-size: 1rem; flex-shrink: 0; }
+        .alert-content { flex: 1; }
+        .alert-title { font-weight: 600; text-transform: uppercase; font-size: 0.72rem; margin-bottom: 0.2rem; }
+        .alert-message { font-size: 0.78rem; color: var(--text-secondary); }
+        .alert.info    { border-color: var(--blue-primary); }
+        .alert.warning { border-color: var(--orange-alert); }
+        .alert.error   { border-color: var(--red-error); }
+
+        .empty-state { text-align: center; padding: 1.2rem; color: var(--text-secondary); font-size: 0.85rem; }
+
+        /* Spinner overlay for PDF */
+        .spinner-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+            color: white;
+            font-size: 1rem;
+        }
+        .spinner-overlay.active { display: flex; }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 1200px) {
+            main { grid-template-columns: 280px 1fr; }
+            .log-panel { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="spinner-overlay" id="spinnerOverlay">
+    <div class="spinner"></div>
+    <div>Generando PDF…</div>
+</div>
+
+<header>
+    <h1>🔍 OptiCode QA — Panel del Auditor</h1>
+    <div class="status-badge" id="statusBadge">Listo</div>
+</header>
+
+<main>
+    <!-- SIDEBAR -->
+    <aside>
+        <div>
+            <div class="sidebar-section-title">📊 Análisis Bob IDE</div>
+            <small style="color:var(--text-secondary);font-size:0.7rem;display:block;margin-bottom:0.5rem;">
+                📁 Carpeta: output/informesbob/
+            </small>
+            <select class="sidebar-input" id="bobAnalysisSelect" onchange="cargarContenidoBob()">
+                <option value="">Seleccionar análisis…</option>
+            </select>
+        </div>
+
+        <div>
+            <div class="sidebar-section-title">💻 Código a Analizar</div>
+            <select class="sidebar-input" id="codigoSelect" onchange="previsualizarCodigo()">
+                <option value="">Seleccionar archivo…</option>
+            </select>
+            <div class="code-preview" id="codePreview"></div>
+        </div>
+
+        <div>
+            <div class="sidebar-section-title">⚙️ Acciones</div>
+            <button class="sidebar-button" id="ejecutarBtn" onclick="ejecutarAuditoria()">
+                ⚡ EJECUTAR
+            </button>
+            <button class="sidebar-button btn-pdf" id="reporteBtn" onclick="descargarPDF()" disabled>
+                📥 Descargar PDF
+            </button>
+        </div>
+
+        <div>
+            <div class="sidebar-section-title">ℹ️ Estado</div>
+            <div class="status-badge" style="display:block;text-align:center;width:100%;">
+                <div id="alertasCount" style="font-size:1.3rem;font-weight:700;">0</div>
+                <small>Alertas detectadas</small>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="content">
+        <div class="content-section">
+            <h2 class="section-title">📈 Análisis de Rendimiento</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Tiempo de Ejecución (ms)</div>
+                    <div class="chart-container">
+                        <canvas id="chartTiempo"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Consumo de Memoria (MB)</div>
+                    <div class="chart-container">
+                        <canvas id="chartMemoria"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">📊 Métricas Detalladas</h2>
+            <div class="card">
+                <table class="metrics-table" id="metricsTable">
+                    <thead>
+                        <tr>
+                            <th>Tamaño (N)</th>
+                            <th>DFS (ms)</th>
+                            <th>LDFS (ms)</th>
+                            <th>IDFS (ms)</th>
+                            <th>Mem DFS (MB)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metricsTableBody">
+                        <tr>
+                            <td colspan="5" class="empty-state">Sin datos. Ejecuta una auditoría primero.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="log-panel">
+        <div class="section-title" style="margin:0;">📋 Log de Ejecución</div>
+        <div class="log-console" id="logConsole">
+            <div class="log-line log-info">
+                <span class="log-timestamp">[00:00:00]</span> Sistema iniciado. Listo para auditar.
+            </div>
+        </div>
+
+        <div class="section-title">⚠️ Alertas</div>
+        <div class="alerts-container" id="alertasContainer">
+            <div class="empty-state" style="padding:0.8rem;">✓ Sin alertas</div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // ── Estado global ────────────────────────────────────────────────────────
+    let chartTiempo   = null;
+    let chartMemoria  = null;
+    let metricsData   = {};
+    let alertasActuales = [];
+    let codigoActual  = '';   // contenido del archivo seleccionado
+    let bobActual     = '';   // nombre del análisis seleccionado
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarAnalisisBob();
+        cargarCodigos();
+        log('🚀 Sistema OptiCode QA iniciado', 'success');
+    });
+
+    // ── Log ───────────────────────────────────────────────────────────────────
+    function log(msg, tipo = 'info') {
+        const consola = document.getElementById('logConsole');
+        const ts = new Date().toLocaleTimeString('es-ES');
+        consola.insertAdjacentHTML('beforeend',
+            `<div class="log-line log-${tipo}"><span class="log-timestamp">[${ts}]</span> ${msg}</div>`
+        );
+        consola.scrollTop = consola.scrollHeight;
+    }
+
+    // ── Cargar análisis Bob ──────────────────────────────────────────────────
+    async function cargarAnalisisBob() {
+        try {
+            const res  = await fetch('/api/bob-sessions');
+            const data = await res.json();
+            const sel  = document.getElementById('bobAnalysisSelect');
+            sel.innerHTML = '<option value="">Seleccionar análisis…</option>';
+
+            if (data.success && data.archivos && data.archivos.length > 0) {
+                data.archivos.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.nombre;
+                    opt.textContent = a.nombre.replace('.md', '');
+                    sel.appendChild(opt);
+                });
+                sel.selectedIndex = 1;
+                bobActual = sel.value;
+                log(`✅ ${data.total} análisis cargados desde output/informesbob/`, 'success');
+            } else {
+                log('ℹ️ Sin análisis en output/informesbob/', 'warning');
+            }
+        } catch (e) {
+            log(`❌ Error cargando análisis Bob: ${e.message}`, 'error');
+        }
+    }
+
+    function cargarContenidoBob() {
+        bobActual = document.getElementById('bobAnalysisSelect').value;
+        if (!bobActual) return;
+        log(`📄 Análisis seleccionado: ${bobActual}`, 'info');
+    }
+
+    // ── Cargar códigos (un archivo a la vez con preview) ─────────────────────
+    async function cargarCodigos() {
+        try {
+            const res  = await fetch('/api/codigos');
+            const data = await res.json();
+            const sel  = document.getElementById('codigoSelect');
+            sel.innerHTML = '<option value="">Seleccionar archivo…</option>';
+
+            if (data.success && data.archivos) {
+                data.archivos.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a.nombre;
+                    opt.textContent = a.nombre;
+                    // Guardamos el preview en el data attribute
+                    opt.dataset.preview = a.contenido_preview || '';
+                    sel.appendChild(opt);
+                });
+                log(`✅ ${data.total} archivos de código disponibles`, 'success');
+            }
+        } catch (e) {
+            log(`❌ Error cargando códigos: ${e.message}`, 'error');
+        }
+    }
+
+    async function previsualizarCodigo() {
+        const sel     = document.getElementById('codigoSelect');
+        const nombre  = sel.value;
+        const preview = document.getElementById('codePreview');
+
+        if (!nombre) {
+            preview.classList.remove('visible');
+            codigoActual = '';
+            return;
+        }
+
+        try {
+            const res  = await fetch(`/api/codigos/${nombre}`);
+            const data = await res.json();
+            if (data.success) {
+                codigoActual = data.contenido;
+                // Mostrar primeras 30 líneas en el preview
+                const lineas = data.contenido.split('\n').slice(0, 30).join('\n');
+                preview.textContent = lineas;
+                preview.classList.add('visible');
+                log(`💻 Código cargado: ${nombre} (${data.contenido.split('\n').length} líneas)`, 'success');
+            }
+        } catch (e) {
+            log(`❌ Error cargando código: ${e.message}`, 'error');
+        }
+    }
+
+    // ── Ejecutar benchmarks ──────────────────────────────────────────────────
+    async function ejecutarAuditoria() {
+        const btn   = document.getElementById('ejecutarBtn');
+        const badge = document.getElementById('statusBadge');
+
+        btn.disabled = true;
+        badge.textContent = 'Ejecutando…';
+        badge.className = 'status-badge running';
+        log('⚡ Iniciando benchmarks locales…', 'info');
+
+        try {
+            const res  = await fetch('/api/ejecutar-benchmarks', { method: 'POST' });
+            const data = await res.json();
+
+            if (data.success) {
+                metricsData     = data.metricas;
+                alertasActuales = data.alertas || [];
+
+                actualizarGraficos();
+                actualizarTabla();
+                actualizarAlertas();
+
+                log('✅ Benchmarks completados exitosamente', 'success');
+                badge.textContent = 'Auditoría Completada ✓';
+                badge.className   = 'status-badge';
+
+                document.getElementById('reporteBtn').disabled = false;
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (e) {
+            log(`❌ Error: ${e.message}`, 'error');
+            badge.textContent = 'Error';
+            badge.className   = 'status-badge';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // ── Gráficos ──────────────────────────────────────────────────────────────
+    function actualizarGraficos() {
+        const sizes  = Object.keys(metricsData).sort((a,b) => parseInt(a)-parseInt(b));
+        const labels = sizes.map(s => `N=${s}`);
+
+        function gT(size, algo) {
+            const m = metricsData[size];
+            return (m[algo]?.time_ms_mean !== undefined) ? m[algo].time_ms_mean : (m.time_ms || 0);
+        }
+        function gM(size, algo) {
+            const m = metricsData[size];
+            return (m[algo]?.mem_bytes_peak_mean !== undefined)
+                ? m[algo].mem_bytes_peak_mean / (1024*1024)
+                : (m.memory_mb || 0);
+        }
+
+        const ctx1 = document.getElementById('chartTiempo').getContext('2d');
+        if (chartTiempo) chartTiempo.destroy();
+        chartTiempo = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    { label:'DFS',  data: sizes.map(s=>gT(s,'dfs')),  borderColor:'#0F62FE', backgroundColor:'rgba(15,98,254,0.08)',  fill:false, tension:0.3, pointBackgroundColor:'#0F62FE', pointRadius:5 },
+                    { label:'LDFS', data: sizes.map(s=>gT(s,'ldfs')), borderColor:'#FF832B', backgroundColor:'rgba(255,131,43,0.08)', fill:false, tension:0.3, pointBackgroundColor:'#FF832B', pointRadius:5 },
+                    { label:'IDFS', data: sizes.map(s=>gT(s,'idfs')), borderColor:'#9F1853', backgroundColor:'rgba(159,24,83,0.08)',  fill:false, tension:0.3, pointBackgroundColor:'#9F1853', pointRadius:5 }
+                ]
+            },
+            options: {
+                responsive:true, maintainAspectRatio:false,
+                plugins: { legend: { display:true, position:'top' } },
+                scales: { y:{ beginAtZero:true, title:{display:true,text:'ms'} }, x:{ grid:{display:false} } }
+            }
+        });
+
+        const ctx2 = document.getElementById('chartMemoria').getContext('2d');
+        if (chartMemoria) chartMemoria.destroy();
+        chartMemoria = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label:'DFS',  data: sizes.map(s=>gM(s,'dfs')),  backgroundColor:'#0F62FE', borderRadius:3 },
+                    { label:'LDFS', data: sizes.map(s=>gM(s,'ldfs')), backgroundColor:'#FF832B', borderRadius:3 },
+                    { label:'IDFS', data: sizes.map(s=>gM(s,'idfs')), backgroundColor:'#9F1853', borderRadius:3 }
+                ]
+            },
+            options: {
+                responsive:true, maintainAspectRatio:false,
+                plugins: { legend: { display:true, position:'top' } },
+                scales: { y:{ beginAtZero:true, title:{display:true,text:'MB'} }, x:{ grid:{display:false} } }
+            }
+        });
+    }
+
+    // ── Tabla ────────────────────────────────────────────────────────────────
+    function actualizarTabla() {
+        const tbody = document.getElementById('metricsTableBody');
+        tbody.innerHTML = '';
+
+        const sizes = Object.keys(metricsData).sort((a,b) => parseInt(a)-parseInt(b));
+
+        sizes.forEach(size => {
+            const m = metricsData[size];
+
+            function t(algo) {
+                return (m[algo]?.time_ms_mean !== undefined)
+                    ? m[algo].time_ms_mean.toFixed(2)
+                    : (m.time_ms || 0).toFixed(2);
+            }
+            function mem(algo) {
+                return (m[algo]?.mem_bytes_peak_mean !== undefined)
+                    ? (m[algo].mem_bytes_peak_mean / (1024*1024)).toFixed(3)
+                    : (m.memory_mb || 0).toFixed(3);
+            }
+            function cls(v) {
+                const n = parseFloat(v);
+                return n > 1000 ? 'value-error' : n > 100 ? 'value-warning' : 'value-good';
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>N = ${size}</strong></td>
+                <td class="${cls(t('dfs'))}">${t('dfs')}</td>
+                <td class="${cls(t('ldfs'))}">${t('ldfs')}</td>
+                <td class="${cls(t('idfs'))}">${t('idfs')}</td>
+                <td class="${parseFloat(mem('dfs')) > 100 ? 'value-warning' : 'value-good'}">${mem('dfs')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('alertasCount').textContent = alertasActuales.length;
+    }
+
+    // ── Alertas ───────────────────────────────────────────────────────────────
+    function actualizarAlertas() {
+        const container = document.getElementById('alertasContainer');
+        if (!alertasActuales || alertasActuales.length === 0) {
+            container.innerHTML = '<div class="empty-state" style="padding:0.8rem;">✓ Sin alertas</div>';
+            return;
+        }
+        container.innerHTML = '';
+        alertasActuales.forEach(a => {
+            const div = document.createElement('div');
+            div.className = `alert ${a.nivel}`;
+            div.innerHTML = `
+                <div class="alert-icon">${a.icono}</div>
+                <div class="alert-content">
+                    <div class="alert-title">${a.tipo}</div>
+                    <div class="alert-message">${a.mensaje}</div>
+                </div>`;
+            container.appendChild(div);
+        });
+    }
+
+    // ── Generar PDF ───────────────────────────────────────────────────────────
+    async function descargarPDF() {
+        document.getElementById('spinnerOverlay').classList.add('active');
+        log('📥 Generando PDF…', 'info');
+
+        // Esperar un tick para que el spinner se pinte
+        await new Promise(r => setTimeout(r, 80));
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+            const W = 210, margin = 14;
+            let y = 0;
+
+            // ── Paleta ────────────────────────────────────────────────────────
+            const BLUE   = [15,  98,  254];
+            const DARK   = [22,  22,  22];
+            const GRAY   = [82,  82,  82];
+            const LGRAY  = [228, 228, 230];
+            const GREEN  = [36,  161, 72];
+            const ORANGE = [230, 96,  0];
+            const RED    = [218, 30,  40];
+            const WHITE  = [255, 255, 255];
+
+            // ── Portada ───────────────────────────────────────────────────────
+            doc.setFillColor(...BLUE);
+            doc.rect(0, 0, W, 55, 'F');
+
+            doc.setTextColor(...WHITE);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(22);
+            doc.text('OPTICODE QA', margin, 22);
+
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Panel del Auditor — Reporte de Análisis de Rendimiento', margin, 31);
+
+            doc.setFontSize(9);
+            const fecha = new Date().toLocaleString('es-ES', { dateStyle:'long', timeStyle:'short' });
+            doc.text(`Generado: ${fecha}`, margin, 40);
+
+            const archivoCodigo = document.getElementById('codigoSelect').value || 'N/A';
+            const archivoAnalisis = document.getElementById('bobAnalysisSelect').value || 'N/A';
+            doc.text(`Código analizado: ${archivoCodigo}   |   Análisis Bob: ${archivoAnalisis}`, margin, 47);
+
+            y = 65;
+
+            // ── Función helpers ───────────────────────────────────────────────
+            function checkPage(needed = 20) {
+                if (y + needed > 280) { doc.addPage(); y = 15; }
+            }
+
+            function sectionTitle(txt) {
+                checkPage(14);
+                doc.setFillColor(...BLUE);
+                doc.rect(margin, y, W - margin*2, 8, 'F');
+                doc.setTextColor(...WHITE);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.text(txt.toUpperCase(), margin + 3, y + 5.5);
+                y += 12;
+                doc.setTextColor(...DARK);
+            }
+
+            function rowBg(i) {
+                return i % 2 === 0 ? [249,250,251] : WHITE;
+            }
+
+            // ── Sección 1: Métricas Detalladas ────────────────────────────────
+            sectionTitle('📊 Métricas Detalladas de Rendimiento');
+
+            const sizes = Object.keys(metricsData).sort((a,b)=>parseInt(a)-parseInt(b));
+
+            // Cabecera tabla
+            const cols    = ['Tamaño N', 'DFS (ms)', 'LDFS (ms)', 'IDFS (ms)', 'Mem DFS (MB)'];
+            const colW    = [30, 38, 38, 38, 42];
+            const colX    = [margin];
+            colW.forEach((w,i) => { if(i>0) colX.push(colX[i-1]+colW[i-1]); });
+
+            doc.setFillColor(...LGRAY);
+            doc.rect(margin, y, W-margin*2, 8, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8);
+            doc.setTextColor(...DARK);
+            cols.forEach((c,i) => doc.text(c, colX[i]+2, y+5.5));
+            y += 9;
+
+            sizes.forEach((size, ri) => {
+                checkPage(9);
+                const m = metricsData[size];
+
+                function tv(algo) {
+                    return (m[algo]?.time_ms_mean !== undefined)
+                        ? m[algo].time_ms_mean.toFixed(2)
+                        : (m.time_ms || 0).toFixed(2);
+                }
+                function mv(algo) {
+                    return (m[algo]?.mem_bytes_peak_mean !== undefined)
+                        ? (m[algo].mem_bytes_peak_mean/(1024*1024)).toFixed(3)
+                        : (m.memory_mb||0).toFixed(3);
+                }
+                function colorNum(v) {
+                    const n = parseFloat(v);
+                    return n > 1000 ? RED : n > 100 ? ORANGE : GREEN;
+                }
+
+                doc.setFillColor(...rowBg(ri));
+                doc.rect(margin, y, W-margin*2, 8, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...DARK);
+                doc.text(`N = ${size}`, colX[0]+2, y+5.5);
+
+                const vals = [tv('dfs'), tv('ldfs'), tv('idfs'), mv('dfs')];
+                vals.forEach((v,i) => {
+                    doc.setTextColor(...colorNum(i<3?v:'0'));
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(v, colX[i+1]+2, y+5.5);
+                });
+                y += 9;
+            });
+
+            y += 6;
+
+            // ── Sección 2: Alertas ────────────────────────────────────────────
+            sectionTitle(`⚠️ Alertas Detectadas (${alertasActuales.length})`);
+
+            if (alertasActuales.length === 0) {
+                doc.setFont('helvetica', 'italic');
+                doc.setFontSize(9);
+                doc.setTextColor(...GRAY);
+                doc.text('✓ Sin alertas. Rendimiento dentro de parámetros normales.', margin, y);
+                y += 10;
+            } else {
+                alertasActuales.forEach((a, i) => {
+                    checkPage(18);
+                    const c = a.nivel === 'error' ? RED : a.nivel === 'warning' ? ORANGE : BLUE;
+                    doc.setFillColor(...c);
+                    doc.rect(margin, y, 3, 14, 'F');
+                    doc.setFillColor(...rowBg(i));
+                    doc.rect(margin+3, y, W-margin*2-3, 14, 'F');
+
+                    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...DARK);
+                    doc.text(`${a.icono}  ${a.tipo}`, margin+6, y+5);
+                    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...GRAY);
+                    const lineas = doc.splitTextToSize(a.mensaje, W-margin*2-12);
+                    doc.text(lineas[0], margin+6, y+11);
+                    y += 16;
+                });
+            }
+
+            y += 4;
+
+            // ── Sección 3: Gráficos ────────────────────────────────────────────
+            sectionTitle('📈 Gráficos de Rendimiento');
+
+            const chartT  = document.getElementById('chartTiempo');
+            const chartM  = document.getElementById('chartMemoria');
+            const imgT    = chartT.toDataURL('image/png', 0.95);
+            const imgMem  = chartM.toDataURL('image/png', 0.95);
+            const gW      = (W - margin*2 - 6) / 2;
+            const gH      = gW * 0.65;
+
+            checkPage(gH + 6);
+            doc.addImage(imgT,   'PNG', margin,          y, gW, gH);
+            doc.addImage(imgMem, 'PNG', margin + gW + 6, y, gW, gH);
+            y += gH + 4;
+
+            // Leyenda de colores
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+            [['DFS', BLUE], ['LDFS', ORANGE], ['IDFS', [159,24,83]]].forEach(([lbl, clr], i) => {
+                const lx = margin + i * 30;
+                doc.setFillColor(...clr);
+                doc.rect(lx, y+1, 6, 4, 'F');
+                doc.setTextColor(...DARK);
+                doc.text(lbl, lx+8, y+5);
+            });
+            y += 12;
+
+            // ── Sección 4: Código analizado ───────────────────────────────────
+            if (codigoActual) {
+                checkPage(20);
+                sectionTitle(`💻 Código Analizado: ${archivoCodigo}`);
+
+                const lineas = codigoActual.split('\n').slice(0, 50);
+                doc.setFont('courier', 'normal');
+                doc.setFontSize(7);
+                doc.setTextColor(...DARK);
+
+                lineas.forEach((linea, i) => {
+                    checkPage(6);
+                    if (i % 2 === 0) {
+                        doc.setFillColor(245,247,250);
+                        doc.rect(margin, y-3, W-margin*2, 5.5, 'F');
+                    }
+                    doc.setTextColor(100,100,100);
+                    doc.text(String(i+1).padStart(3,' '), margin+1, y+1.5);
+                    doc.setTextColor(...DARK);
+                    const cortada = doc.splitTextToSize(linea, W-margin*2-12);
+                    doc.text(cortada[0] || '', margin+10, y+1.5);
+                    y += 5.5;
+                });
+
+                if (codigoActual.split('\n').length > 50) {
+                    checkPage(8);
+                    doc.setFont('helvetica', 'italic');
+                    doc.setFontSize(7.5);
+                    doc.setTextColor(...GRAY);
+                    doc.text(`… (se muestran las primeras 50 líneas de ${codigoActual.split('\n').length})`, margin, y+4);
+                    y += 10;
+                }
+            }
+
+            // ── Pie de página en todas las páginas ────────────────────────────
+            const total = doc.getNumberOfPages();
+            for (let p = 1; p <= total; p++) {
+                doc.setPage(p);
+                doc.setFillColor(...LGRAY);
+                doc.rect(0, 290, W, 7, 'F');
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7);
+                doc.setTextColor(...GRAY);
+                doc.text('OptiCode QA — Reporte de Auditoría de Algoritmos', margin, 294.5);
+                doc.text(`Página ${p} / ${total}`, W - margin - 20, 294.5);
+            }
+
+            // ── Guardar ───────────────────────────────────────────────────────
+            const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0,16);
+            doc.save(`OptiCode_QA_Reporte_${ts}.pdf`);
+            log('✅ PDF generado y descargado exitosamente', 'success');
+
+        } catch (e) {
+            log(`❌ Error generando PDF: ${e.message}`, 'error');
+            console.error(e);
+        } finally {
+            document.getElementById('spinnerOverlay').classList.remove('active');
+        }
+    }
+</script>
+</body>
+</html>
