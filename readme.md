@@ -24,6 +24,9 @@ Para que la solución sea viable y no nos gastemos los recursos antes de tiempo,
 * **Qué hace:** Enviamos las métricas recolectadas localmente a un modelo fundacional pequeño de **IBM Granite** mediante código. El modelo procesa la discrepancia entre la teoría matemática de Bob y la práctica de nuestro script local para redactar las conclusiones del reporte final de QA.
 * **Estrategia de Créditos:** Usamos modelos micro/pequeños porque consumen poquísimos tokens (medidos en Resource Units) y rinden más para estructurar texto plano, protegiendo los **\$80 USD de presupuesto**.
 
+watsonx-Hackathon WS (watsonx.ai Studio)
+watsonx-Hackathon WML (Watson Machine Learning)
+
 ---
 
 ## 📋 3. ¿Qué tiene que hacer cada miembro del equipo? (Flujo de Trabajo)
@@ -45,3 +48,6 @@ Para cumplir con las reglas estrictas de Lablab.ai, debemos tener listos:
 1. **Descripción del Producto:** (Este mismo enfoque de OptiCode QA).
 2. **Repositorio de GitHub:** Estrictamente **PÚBLICO** (si es privado, restan puntos), incluyendo el código del motor local y la carpeta obligatoria `bob_sessions`.
 3. **Video de Presentación / Demo:** Con una duración máxima e improrrogable de **5 minutos**.
+
+## Usar
+
