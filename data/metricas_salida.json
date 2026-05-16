@@ -1,0 +1,60 @@
+{
+  "benchmarks": {
+    "10": {
+      "time_ms_mean": 0.0473,
+      "time_ms_samples": [
+        0.0784,
+        0.0339,
+        0.0295
+      ],
+      "mem_bytes_peak_mean": 314,
+      "mem_bytes_peak_samples": [
+        336,
+        304,
+        304
+      ]
+    },
+    "100": {
+      "time_ms_mean": 0.2733,
+      "time_ms_samples": [
+        0.2854,
+        0.2684,
+        0.266
+      ],
+      "mem_bytes_peak_mean": 864,
+      "mem_bytes_peak_samples": [
+        864,
+        864,
+        864
+      ]
+    },
+    "1000": {
+      "time_ms_mean": 2.9488,
+      "time_ms_samples": [
+        3.1115,
+        2.9169,
+        2.8179
+      ],
+      "mem_bytes_peak_mean": 8104,
+      "mem_bytes_peak_samples": [
+        9336,
+        7488,
+        7488
+      ]
+    },
+    "5000": {
+      "time_ms_mean": 23.1429,
+      "time_ms_samples": [
+        19.7929,
+        29.039,
+        20.5969
+      ],
+      "mem_bytes_peak_mean": 52421,
+      "mem_bytes_peak_samples": [
+        52496,
+        52384,
+        52384
+      ]
+    }
+  }
+}
