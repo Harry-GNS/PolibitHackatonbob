@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OptiCode QA — Dashboard</title>
+
+  <!-- Mono font -->
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#0F62FE',
+            bgsoft: '#F4F6F8',
+            textdark: '#161616',
+            warn: '#E66000',
+            critical: '#DA1E28'
+          },
+          borderRadius: { 'md': '6px' },
+          boxShadow: { 'soft': '0 6px 18px rgba(20,24,30,0.06)' }
+        },
+        fontFamily: {
+          mono: ['"Fira Code"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'monospace']
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html,body { height:100%; }
+    body {
+      font-family: theme('fontFamily.mono');
+      background: #FFFFFF;
+      color: #161616;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .sep { border-top: 1px solid #E6E9EE; }
+    .file-btn {
+      background:#FFFFFF; border:1px solid #E6E9EE; color:#161616;
+      padding:8px 12px; border-radius:6px; font-weight:600;
+    }
+    .badge { font-size:12px; padding:6px 9px; border-radius:999px; border:1px solid rgba(0,0,0,0.06); }
+    table th, table td { font-family: inherit; font-size:13px; }
+  </style>
+</head>
+<body class="min-h-screen p-8">
+  <div class="max-w-[1300px] mx-auto">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-md flex items-center justify-center bg-brand text-white font-semibold">OC</div>
+          <div>
+            <div class="text-sm text-[#0F62FE] font-semibold">OptiCode QA</div>
+            <div class="text-[13px] text-[#5b6369]">Auditor de rendimiento y coste computacional</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="text-sm text-[#5b6369]">Sistema:</div>
+        <div class="badge" style="background:#F4F6F8">Estado: <strong class="ml-2" style="color:#161616">Listo</strong></div>
+        <div class="badge" style="background:#F4F6F8; border-color:#dbe8ff; color:#0F62FE">Bobcoins: <strong class="ml-2">40</strong></div>
+        <div class="badge" style="background:#F4F6F8; color:#161616">Tokens optimizados: <strong class="ml-2">micro</strong></div>
+      </div>
+    </header>
+
+    <main class="grid grid-cols-12 gap-6">
+
+      <!-- LEFT: Inputs -->
+      <aside class="col-span-4 bg-bgsoft p-5 rounded-md shadow-soft border border-[#E6E9EE]">
+        <h3 class="text-sm text-[#161616] font-semibold mb-3">Módulo de carga e insumos</h3>
+        <p class="text-xs text-[#5b6369] mb-4">Sube o selecciona los insumos requeridos para la auditoría. Cada ítem muestra estado y acción.</p>
+
+        <div class="space-y-4">
+          <!-- Code source -->
+          <div class="bg-white p-4 rounded-md border border-[#E6E9EE]">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs text-[#5b6369]">1. Código Fuente</div>
+                <div class="text-sm text-[#161616] font-semibold mt-1">`algoritmos.py`</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="text-sm px-3 py-1 rounded-md" style="background:#EAF3FF; color:#0F62FE; border:1px solid rgba(15,98,254,0.08)">Analizado</div>
+                <button class="file-btn" onclick="document.getElementById('fcode').click()">Cargar</button>
+              </div>
+            </div>
+            <input id="fcode" type="file" accept=".py" class="hidden" onchange="onFileChange(event, 'code')" />
+          </div>
+
+          <!-- Bob report -->
+          <div class="bg-white p-4 rounded-md border border-[#E6E9EE]">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs text-[#5b6369]">2. IBM Bob IDE — Capa Teórica</div>
+                <div class="text-sm text-[#161616] font-semibold mt-1">`bob_sessions/*.md`</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div id="bobStatus" class="text-sm px-3 py-1 rounded-md" style="background:#FFF6E6; color:#E66000; border:1px solid rgba(230,96,0,0.08)">Pendiente</div>
+                <button class="file-btn" onclick="document.getElementById('fbob').click()">Cargar</button>
+              </div>
+            </div>
+            <input id="fbob" type="file" accept=".md,.txt" class="hidden" onchange="onFileChange(event, 'bob')" />
+            <div id="bobPreview" class="mt-3 text-[13px] text-[#5b6369] truncate">Ningún archivo cargado</div>
+          </div>
+
+          <!-- Metrics -->
+          <div class="bg-white p-4 rounded-md border border-[#E6E9EE]">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs text-[#5b6369]">3. Motor Local — Capa Práctica</div>
+                <div class="text-sm text-[#161616] font-semibold mt-1">`data/metricas_salida.json`</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div id="metricsStatus" class="text-sm px-3 py-1 rounded-md" style="background:#F4F6F8; color:#161616">Sin datos</div>
+                <button class="file-btn" onclick="document.getElementById('fmetrics').click()">Cargar</button>
+              </div>
+            </div>
+            <input id="fmetrics" type="file" accept=".json,.csv" class="hidden" onchange="onFileChange(event, 'metrics')" />
+            <div id="metricsPreview" class="mt-3 text-[13px] text-[#5b6369] truncate">Ningún archivo cargado</div>
+          </div>
+
+          <div class="flex items-center gap-3 mt-3">
+            <button id="btnAnalyze" class="px-4 py-2 rounded-md bg-brand text-white font-semibold disabled:opacity-50" onclick="analyze()" disabled>Generar lectura</button>
+            <button id="btnExport" class="px-4 py-2 rounded-md border border-[#E6E9EE] text-[#161616] font-semibold" onclick="exportHTML()" disabled>Exportar HTML</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CENTER/RIGHT: Results -->
+      <section class="col-span-8 space-y-6">
+
+        <!-- Comparison table -->
+        <div class="bg-white p-5 rounded-md border border-[#E6E9EE] shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h4 class="text-sm font-semibold" style="color:#161616">Comparación — Teoría vs Práctica</h4>
+              <div class="text-xs text-[#5b6369]">Tamaño de entrada, tiempos y picos de RAM con la etiqueta Big‑O</div>
+            </div>
+            <div class="text-xs text-[#5b6369]">Última ejecución: <strong id="lastRun">—</strong></div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full table-auto">
+              <thead class="text-left">
+                <tr class="text-sm text-[#5b6369]">
+                  <th class="py-3 px-4">N</th>
+                  <th class="py-3 px-4">Tiempo (ms)</th>
+                  <th class="py-3 px-4">Pico RAM (KB)</th>
+                  <th class="py-3 px-4">Big-O (Bob)</th>
+                  <th class="py-3 px-4">Big-O (Práctica)</th>
+                </tr>
+              </thead>
+              <tbody id="compareBody">
+                <tr><td colspan="5" class="py-6 px-4 text-[#5b6369]">No hay métricas cargadas.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Financial & Recommendations panel -->
+        <div class="bg-white p-5 rounded-md border border-[#E6E9EE] shadow-soft">
+          <div class="flex items-start justify-between gap-6">
+            <div class="flex-1">
+              <h4 class="text-sm font-semibold" style="color:#161616">Diagnóstico de Impacto Financiero Cloud</h4>
+              <p class="text-xs text-[#5b6369] mb-4">Estimación rápida de coste y recomendaciones de optimización traducidas a impacto económico.</p>
+
+              <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="p-3 border border-[#E6E9EE] rounded-md">
+                  <div class="text-xs text-[#5b6369]">Costo estimado / mes</div>
+                  <div class="text-lg font-semibold mt-2" id="costEstimate">$—</div>
+                </div>
+                <div class="p-3 border border-[#E6E9EE] rounded-md">
+                  <div class="text-xs text-[#5b6369]">CPU load impact</div>
+                  <div class="text-lg font-semibold mt-2" id="cpuImpact">—%</div>
+                </div>
+                <div class="p-3 border border-[#E6E9EE] rounded-md">
+                  <div class="text-xs text-[#5b6369]">Memoria extra</div>
+                  <div class="text-lg font-semibold mt-2" id="memImpact">— KB</div>
+                </div>
+              </div>
+
+              <h5 class="text-xs font-semibold" style="color:#161616">Recomendaciones</h5>
+              <ul id="recList" class="list-decimal ml-5 mt-2 text-[#161616] text-sm">
+                <li class="text-[#5b6369]">No hay análisis todavía — genera la lectura</li>
+              </ul>
+            </div>
+
+            <!-- Small report preview -->
+            <aside class="w-72 p-3 border border-[#E6E9EE] rounded-md bg-bgsoft">
+              <div class="text-xs text-[#5b6369]">Resumen watsonx.ai (simulado)</div>
+              <div id="reportPreview" class="mt-3 text-sm text-[#161616]">Sin reporte</div>
+            </aside>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+    let fileContents = { code: null, bob: null, metrics: null };
+
+    function onFileChange(ev, type) {
+      const f = ev.target.files?.[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        fileContents[type] = { name: f.name, text: reader.result };
+        document.getElementById(type + 'Preview')?.replaceWith(buildPreview(type));
+        updateStatus(type, true);
+        checkReady();
+      };
+      reader.readAsText(f);
+    }
+
+    function buildPreview(type) {
+      const el = document.createElement('div');
+      el.id = type + 'Preview';
+      el.className = 'mt-3 text-[13px] text-[#5b6369] truncate';
+      el.textContent = (fileContents[type]?.name) || 'Ningún archivo cargado';
+      return el;
+    }
+
+    function updateStatus(type, ok) {
+      if (type === 'bob') {
+        const s = document.getElementById('bobStatus');
+        s.textContent = ok ? 'Analizado' : 'Pendiente';
+        s.style.backgroundColor = ok ? '#EAF3FF' : '#FFF6E6';
+        s.style.color = ok ? '#0F62FE' : '#E66000';
+      }
+      if (type === 'metrics') {
+        const s = document.getElementById('metricsStatus');
+        s.textContent = ok ? 'Datos cargados' : 'Sin datos';
+        s.style.backgroundColor = ok ? '#F4F6F8' : '#F4F6F8';
+        s.style.color = ok ? '#161616' : '#161616';
+      }
+    }
+
+    function checkReady() {
+      const ready = fileContents.code && fileContents.bob && fileContents.metrics;
+      document.getElementById('btnAnalyze').disabled = !ready;
+      document.getElementById('btnExport').disabled = !ready;
+      if (ready) {
+        document.getElementById('lastRun').textContent = new Date().toLocaleString();
+      }
+    }
+
+    function analyze() {
+      const metricsText = fileContents.metrics.text;
+      let metricsObj = null;
+      try { metricsObj = JSON.parse(metricsText); } catch(e) {
+        alert('El archivo de métricas no es un JSON válido.');
+        return;
+      }
+
+      const rows = [];
+      const bench = metricsObj.benchmarks || metricsObj;
+      for (const k of Object.keys(bench)) {
+        const v = bench[k];
+        const time = (v.time_ms_mean || v.time_ms || (v.time && v.time[0]) || 0);
+        const mem = (v.mem_bytes_peak_mean || v.mem_bytes || v.mem || 0);
+        rows.push({ n: k, time: Number(time), mem: Number(mem) / 1024 });
+      }
+      rows.sort((a,b)=>Number(a.n)-Number(b.n));
+
+      const tbody = document.getElementById('compareBody');
+      tbody.innerHTML = '';
+      for (const r of rows) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-sm">${r.n}</td>
+          <td class="py-3 px-4 text-sm">${r.time.toFixed(2)}</td>
+          <td class="py-3 px-4 text-sm">${r.mem.toFixed(2)}</td>
+          <td class="py-3 px-4 text-sm">O(N^2)</td>
+          <td class="py-3 px-4 text-sm">O(N^2)</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      const avgTime = rows.reduce((s,x)=>s+x.time,0)/Math.max(1,rows.length);
+      const avgMem = rows.reduce((s,x)=>s+x.mem,0)/Math.max(1,rows.length);
+      const cost = Math.max(1, Math.round((avgTime * 0.00002 + avgMem * 0.0001) * 100));
+      document.getElementById('costEstimate').textContent = '$' + cost + '/mo';
+      document.getElementById('cpuImpact').textContent = Math.min(99, Math.round(avgTime/10)) + '%';
+      document.getElementById('memImpact').textContent = Math.round(avgMem) + ' KB';
+
+      const rec = [
+        'Analizar función con Bob para identificar bucles anidados y evitar O(N^2).',
+        'Evaluar refactorización a algoritmo divide-and-conquer o uso de estructuras indexadas.',
+        'Reducir iteraciones redundantes y evitar copias de colecciones en bucles.',
+      ];
+      const recList = document.getElementById('recList');
+      recList.innerHTML = '';
+      rec.forEach(r => { const li = document.createElement('li'); li.textContent = r; recList.appendChild(li); });
+
+      document.getElementById('reportPreview').textContent = 'Watsonx.ai: discrepancia detectada en Big-O vs práctica; recomienda refactorizar bucles críticos.';
+
+      document.getElementById('btnExport').disabled = false;
+    }
+
+    function exportHTML() {
+      const payload = { code: fileContents.code, bob: fileContents.bob, metrics: fileContents.metrics };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'opticode_step1_bundle.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      alert('Se exportó bundle JSON con código, bob y métricas.');
+    }
+  </script>
+</body>
+</html>

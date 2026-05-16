@@ -116,4 +116,24 @@ opticode-qa/
 
 Antes de subir el proyecto al repositorio público, elimina cualquier clave real y deja las credenciales solo en `.env`. Ese archivo no debe compartirse.
 
+## Cómo empezamos ahora mismo
+
+1. Elegir un algoritmo base ineficiente que ya exista en el repositorio o en los apuntes del equipo. Lo ideal es algo con complejidad cuadrática $O(N^2)$ o cúbica $O(N^3)$ para que Bob y el motor local tengan un caso claro que analizar.
+2. Abrir ese archivo en IBM Bob IDE, pedir el análisis de complejidad y exportar la sesión en Markdown junto con la captura de consumo en `bob_sessions`.
+3. Mientras una persona trabaja en Bob, otra implementa el motor local en Python para medir tiempo y memoria con tamaños crecientes como $N = 10, 100, 500, 1000$ y guardar la salida en JSON o CSV.
+4. Cuando ya existan la teoría de Bob y las métricas reales, conectar watsonx.ai como auditor e integrador final para cruzar ambos insumos, estimar impacto financiero y redactar el reporte final en Markdown.
+5. Si no tienen todavía un algoritmo elegido, empezar con el más simple de buscar: un bucle anidado, una búsqueda lineal repetida o una ruta de grafo mal implementada. Lo importante es que sea fácil de medir y comparar.
+
+## Interfaz visual del Paso 1
+
+Para que el paso 1 no dependa solo de Markdown, se añadió una interfaz local en Python pensada como un panel ejecutivo:
+
+- Carga el código fuente conejillo de indias.
+- Carga el reporte teórico exportado desde IBM Bob IDE.
+- Carga las métricas reales del motor local.
+- Muestra una lectura visual de divergencia, complejidad y riesgo.
+- Exporta un reporte HTML y un JSON resumen para compartir con el equipo.
+
+El archivo principal de esta interfaz es `src/step1_studio.py`. La idea es usarlo como la pantalla central del paso 1, mientras `bob_sessions` sigue guardando la evidencia original de Bob.
+
 
