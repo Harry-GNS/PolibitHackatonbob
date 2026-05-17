@@ -2,11 +2,11 @@
   "benchmarks": {
     "10": {
       "dfs": {
-        "time_ms_mean": 1.6294,
+        "time_ms_mean": 0.8922,
         "time_ms_samples": [
-          4.1378,
-          0.498,
-          0.2523
+          2.442,
+          0.1514,
+          0.0831
         ],
         "mem_bytes_peak_mean": 536,
         "mem_bytes_peak_samples": [
@@ -16,38 +16,38 @@
         ]
       },
       "ldfs": {
-        "time_ms_mean": 0.2644,
+        "time_ms_mean": 0.0973,
         "time_ms_samples": [
-          0.5779,
-          0.0943,
-          0.1211
+          0.1374,
+          0.0711,
+          0.0835
         ],
-        "mem_bytes_peak_mean": 432,
+        "mem_bytes_peak_mean": 376,
         "mem_bytes_peak_samples": [
-          544,
+          376,
           376,
           376
         ]
       },
       "idfs": {
-        "time_ms_mean": 0.4544,
+        "time_ms_mean": 0.3173,
         "time_ms_samples": [
-          0.372,
-          0.5318,
-          0.4595
+          0.5261,
+          0.2487,
+          0.1772
         ],
-        "mem_bytes_peak_mean": 445,
+        "mem_bytes_peak_mean": 408,
         "mem_bytes_peak_samples": [
-          520,
+          408,
           408,
           408
         ]
       },
-      "time_ms_mean": 1.6294,
+      "time_ms_mean": 0.8922,
       "time_ms_samples": [
-        4.1378,
-        0.498,
-        0.2523
+        2.442,
+        0.1514,
+        0.0831
       ],
       "mem_bytes_peak_mean": 536,
       "mem_bytes_peak_samples": [
@@ -58,170 +58,170 @@
     },
     "100": {
       "dfs": {
-        "time_ms_mean": 1.0889,
+        "time_ms_mean": 0.8929,
         "time_ms_samples": [
-          1.0508,
-          0.9457,
-          1.2702
+          0.7716,
+          0.8918,
+          1.0152
         ],
-        "mem_bytes_peak_mean": 1301,
+        "mem_bytes_peak_mean": 1096,
         "mem_bytes_peak_samples": [
-          1712,
+          1096,
           1096,
           1096
         ]
       },
       "ldfs": {
-        "time_ms_mean": 0.8332,
+        "time_ms_mean": 0.874,
         "time_ms_samples": [
-          0.867,
-          0.8202,
-          0.8124
+          0.9928,
+          1.0094,
+          0.6198
         ],
-        "mem_bytes_peak_mean": 973,
+        "mem_bytes_peak_mean": 960,
         "mem_bytes_peak_samples": [
-          1048,
           936,
+          1008,
           936
         ]
       },
       "idfs": {
-        "time_ms_mean": 3.8053,
+        "time_ms_mean": 3.3677,
         "time_ms_samples": [
-          3.9546,
-          4.1049,
-          3.3563
+          3.103,
+          2.8984,
+          4.1016
         ],
-        "mem_bytes_peak_mean": 1286,
+        "mem_bytes_peak_mean": 1294,
         "mem_bytes_peak_samples": [
-          1924,
+          1024,
           968,
-          968
+          1890
         ]
       },
-      "time_ms_mean": 1.0889,
+      "time_ms_mean": 0.8929,
       "time_ms_samples": [
-        1.0508,
-        0.9457,
-        1.2702
+        0.7716,
+        0.8918,
+        1.0152
       ],
-      "mem_bytes_peak_mean": 1301,
+      "mem_bytes_peak_mean": 1096,
       "mem_bytes_peak_samples": [
-        1712,
+        1096,
         1096,
         1096
       ]
     },
     "1000": {
       "dfs": {
-        "time_ms_mean": 14.8265,
+        "time_ms_mean": 9.8512,
         "time_ms_samples": [
-          16.3833,
-          14.4978,
-          13.5985
+          11.0094,
+          8.5242,
+          10.02
         ],
-        "mem_bytes_peak_mean": 9321,
+        "mem_bytes_peak_mean": 9409,
         "mem_bytes_peak_samples": [
-          11376,
+          12716,
           7720,
-          8867
+          7792
         ]
       },
       "ldfs": {
-        "time_ms_mean": 11.1377,
+        "time_ms_mean": 7.935,
         "time_ms_samples": [
-          11.4976,
-          11.6925,
-          10.223
+          7.7218,
+          7.5926,
+          8.4907
         ],
-        "mem_bytes_peak_mean": 8395,
+        "mem_bytes_peak_mean": 7860,
         "mem_bytes_peak_samples": [
-          9040,
-          7632,
-          8513
+          7672,
+          8350,
+          7560
         ]
       },
       "idfs": {
-        "time_ms_mean": 46.6424,
+        "time_ms_mean": 30.6136,
         "time_ms_samples": [
-          46.0261,
-          42.2434,
-          51.6576
+          30.9981,
+          29.1595,
+          31.6833
         ],
-        "mem_bytes_peak_mean": 10694,
+        "mem_bytes_peak_mean": 9283,
         "mem_bytes_peak_samples": [
-          9703,
-          9818,
-          12562
+          10020,
+          8243,
+          9588
         ]
       },
-      "time_ms_mean": 14.8265,
+      "time_ms_mean": 9.8512,
       "time_ms_samples": [
-        16.3833,
-        14.4978,
-        13.5985
+        11.0094,
+        8.5242,
+        10.02
       ],
-      "mem_bytes_peak_mean": 9321,
+      "mem_bytes_peak_mean": 9409,
       "mem_bytes_peak_samples": [
-        11376,
+        12716,
         7720,
-        8867
+        7792
       ]
     },
     "5000": {
       "dfs": {
-        "time_ms_mean": 69.5415,
+        "time_ms_mean": 51.1751,
         "time_ms_samples": [
-          77.5715,
-          60.1944,
-          70.8586
+          48.3389,
+          53.2738,
+          51.9127
         ],
-        "mem_bytes_peak_mean": 55730,
+        "mem_bytes_peak_mean": 59571,
         "mem_bytes_peak_samples": [
-          59212,
-          53891,
-          54087
+          56198,
+          55075,
+          67442
         ]
       },
       "ldfs": {
-        "time_ms_mean": 53.4462,
+        "time_ms_mean": 39.2643,
         "time_ms_samples": [
-          49.9187,
-          54.001,
-          56.4188
+          38.0902,
+          38.4838,
+          41.2188
         ],
-        "mem_bytes_peak_mean": 55178,
+        "mem_bytes_peak_mean": 54415,
         "mem_bytes_peak_samples": [
-          53662,
-          54997,
-          56875
+          54671,
+          53340,
+          55235
         ]
       },
       "idfs": {
-        "time_ms_mean": 175.4292,
+        "time_ms_mean": 155.3509,
         "time_ms_samples": [
-          188.1519,
-          176.1837,
-          161.9521
+          154.2425,
+          153.8754,
+          157.9347
         ],
-        "mem_bytes_peak_mean": 57593,
+        "mem_bytes_peak_mean": 58178,
         "mem_bytes_peak_samples": [
-          56287,
-          57368,
-          59125
+          58021,
+          59492,
+          57023
         ]
       },
-      "time_ms_mean": 69.5415,
+      "time_ms_mean": 51.1751,
       "time_ms_samples": [
-        77.5715,
-        60.1944,
-        70.8586
+        48.3389,
+        53.2738,
+        51.9127
       ],
-      "mem_bytes_peak_mean": 55730,
+      "mem_bytes_peak_mean": 59571,
       "mem_bytes_peak_samples": [
-        59212,
-        53891,
-        54087
+        56198,
+        55075,
+        67442
       ]
     }
   }

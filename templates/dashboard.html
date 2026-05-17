@@ -2193,18 +2193,21 @@
             margin = 14;
           let y = 0;
 
-          // ── Paleta ────────────────────────────────────────────────────────
-          const BLUE = [78, 163, 184];
-          const DARK = [237, 244, 251];
-          const GRAY = [169, 183, 200];
-          const LGRAY = [45, 58, 76];
-          const GREEN = [78, 163, 184];
-          const ORANGE = [224, 138, 60];
-          const RED = [240, 139, 126];
-          const WHITE = [255, 255, 255];
+          // ── Paleta Corporativa Azul Marino ────────────────────────────────
+          const NAVY_DARK = [13, 27, 62];      // Azul marino oscuro principal
+          const NAVY_MEDIUM = [25, 55, 109];   // Azul marino medio
+          const NAVY_LIGHT = [41, 98, 255];    // Azul corporativo brillante
+          const NAVY_ACCENT = [0, 123, 255];   // Azul acento
+          const TEXT_DARK = [33, 37, 41];      // Texto principal oscuro
+          const TEXT_GRAY = [108, 117, 125];   // Texto secundario
+          const GREEN = [40, 167, 69];         // Verde éxito
+          const ORANGE = [255, 152, 0];        // Naranja advertencia
+          const RED = [220, 53, 69];           // Rojo error
+          const WHITE = [255, 255, 255];       // Blanco
+          const BG_LIGHT = [248, 249, 250];    // Fondo claro
 
           // ── Portada ───────────────────────────────────────────────────────
-          doc.setFillColor(...BLUE);
+          doc.setFillColor(...NAVY_DARK);
           doc.rect(0, 0, W, 55, "F");
 
           doc.setTextColor(...WHITE);
@@ -2212,8 +2215,8 @@
           doc.setFontSize(22);
           doc.text("OPTICODE QA", margin, 22);
 
-          doc.setFontSize(11);
-          doc.setFont("helvetica", "normal");
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
           doc.text(
             "Panel del Auditor - Reporte de Analisis de Rendimiento",
             margin,
@@ -2221,6 +2224,7 @@
           );
 
           doc.setFontSize(9);
+          doc.setFont("helvetica", "normal");
           const fecha = new Date().toLocaleString("es-ES", {
             dateStyle: "long",
             timeStyle: "short",
@@ -2230,6 +2234,7 @@
           const archivoCodigo = fuenteCodigoActual || "N/A";
           const archivoAnalisis =
             document.getElementById("bobAnalysisSelect").value || "N/A";
+          doc.setFontSize(8);
           doc.text(
             `Código analizado: ${archivoCodigo}   |   Analisis Bob: ${archivoAnalisis}`,
             margin,
@@ -2248,18 +2253,18 @@
 
           function sectionTitle(txt) {
             checkPage(14);
-            doc.setFillColor(...BLUE);
-            doc.rect(margin, y, W - margin * 2, 8, "F");
+            doc.setFillColor(...NAVY_MEDIUM);
+            doc.rect(margin, y, W - margin * 2, 9, "F");
             doc.setTextColor(...WHITE);
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(9);
-            doc.text(txt.toUpperCase(), margin + 3, y + 5.5);
-            y += 12;
-            doc.setTextColor(...DARK);
+            doc.setFontSize(10);
+            doc.text(txt.toUpperCase(), margin + 3, y + 6);
+            y += 13;
+            doc.setTextColor(...TEXT_DARK);
           }
 
           function rowBg(i) {
-            return i % 2 === 0 ? [249, 250, 251] : WHITE;
+            return i % 2 === 0 ? BG_LIGHT : WHITE;
           }
 
           // ── Sección 0: Resumen del Análisis ───────────────────────────────
@@ -2268,10 +2273,10 @@
 
             if (resumenActual.titulo) {
               doc.setFont("helvetica", "bold");
-              doc.setFontSize(9);
-              doc.setTextColor(...DARK);
+              doc.setFontSize(10);
+              doc.setTextColor(...TEXT_DARK);
               doc.text(`Analisis: ${resumenActual.titulo}`, margin, y);
-              y += 6;
+              y += 7;
             }
 
             // Puntos clave
@@ -2280,22 +2285,22 @@
               resumenActual.puntos_clave.length > 0
             ) {
               doc.setFont("helvetica", "bold");
-              doc.setFontSize(8);
-              doc.setTextColor(...BLUE);
-              doc.text("[OK] Puntos Clave:", margin, y);
-              y += 4;
+              doc.setFontSize(9);
+              doc.setTextColor(...NAVY_ACCENT);
+              doc.text("✓ Puntos Clave:", margin, y);
+              y += 5;
 
               resumenActual.puntos_clave.slice(0, 3).forEach((punto) => {
                 checkPage(6);
                 doc.setFont("helvetica", "normal");
-                doc.setFontSize(7.5);
-                doc.setTextColor(...DARK);
+                doc.setFontSize(8.5);
+                doc.setTextColor(...TEXT_DARK);
                 const lineas = doc.splitTextToSize(
-                  `- ${punto}`,
+                  `• ${punto}`,
                   W - margin * 2 - 4,
                 );
-                doc.text(lineas[0] || "", margin + 2, y);
-                y += 5;
+                doc.text(lineas[0] || "", margin + 3, y);
+                y += 5.5;
               });
               y += 2;
             }
@@ -2306,22 +2311,22 @@
               resumenActual.cuellos_botella.length > 0
             ) {
               doc.setFont("helvetica", "bold");
-              doc.setFontSize(8);
+              doc.setFontSize(9);
               doc.setTextColor(...RED);
-              doc.text("[CRITICO] Cuellos de Botella:", margin, y);
-              y += 4;
+              doc.text("⚠ CRITICO - Cuellos de Botella:", margin, y);
+              y += 5;
 
               resumenActual.cuellos_botella.slice(0, 3).forEach((cuello) => {
                 checkPage(6);
                 doc.setFont("helvetica", "normal");
-                doc.setFontSize(7.5);
-                doc.setTextColor(...DARK);
+                doc.setFontSize(8.5);
+                doc.setTextColor(...TEXT_DARK);
                 const lineas = doc.splitTextToSize(
-                  `- ${cuello}`,
+                  `• ${cuello}`,
                   W - margin * 2 - 4,
                 );
-                doc.text(lineas[0] || "", margin + 2, y);
-                y += 5;
+                doc.text(lineas[0] || "", margin + 3, y);
+                y += 5.5;
               });
               y += 2;
             }
@@ -2332,22 +2337,22 @@
               resumenActual.recomendaciones.length > 0
             ) {
               doc.setFont("helvetica", "bold");
-              doc.setFontSize(8);
+              doc.setFontSize(9);
               doc.setTextColor(...GREEN);
-              doc.text("[RECOMENDACION] Propuestas:", margin, y);
-              y += 4;
+              doc.text("→ Recomendaciones:", margin, y);
+              y += 5;
 
               resumenActual.recomendaciones.slice(0, 3).forEach((rec) => {
                 checkPage(6);
                 doc.setFont("helvetica", "normal");
-                doc.setFontSize(7.5);
-                doc.setTextColor(...DARK);
+                doc.setFontSize(8.5);
+                doc.setTextColor(...TEXT_DARK);
                 const lineas = doc.splitTextToSize(
-                  `- ${rec}`,
+                  `• ${rec}`,
                   W - margin * 2 - 4,
                 );
-                doc.text(lineas[0] || "", margin + 2, y);
-                y += 5;
+                doc.text(lineas[0] || "", margin + 3, y);
+                y += 5.5;
               });
               y += 4;
             }
@@ -2358,12 +2363,12 @@
               resumenActual.metricas.complejidades_encontradas
             ) {
               doc.setFont("helvetica", "bold");
-              doc.setFontSize(7.5);
-              doc.setTextColor(...DARK);
+              doc.setFontSize(8.5);
+              doc.setTextColor(...NAVY_MEDIUM);
               const complejos =
                 resumenActual.metricas.complejidades_encontradas.join(" | ");
-              doc.text(`Complejidades: ${complejos}`, margin, y);
-              y += 6;
+              doc.text(`Complejidades detectadas: ${complejos}`, margin, y);
+              y += 7;
             }
 
             y += 4;
@@ -2390,13 +2395,13 @@
             if (i > 0) colX.push(colX[i - 1] + colW[i - 1]);
           });
 
-          doc.setFillColor(...LGRAY);
-          doc.rect(margin, y, W - margin * 2, 8, "F");
+          doc.setFillColor(...NAVY_MEDIUM);
+          doc.rect(margin, y, W - margin * 2, 9, "F");
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(8);
-          doc.setTextColor(...DARK);
-          cols.forEach((c, i) => doc.text(c, colX[i] + 2, y + 5.5));
-          y += 9;
+          doc.setFontSize(9);
+          doc.setTextColor(...WHITE);
+          cols.forEach((c, i) => doc.text(c, colX[i] + 2, y + 6));
+          y += 10;
 
           sizes.forEach((size, ri) => {
             checkPage(9);
@@ -2420,14 +2425,15 @@
             doc.setFillColor(...rowBg(ri));
             doc.rect(margin, y, W - margin * 2, 8, "F");
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(8);
-            doc.setTextColor(...DARK);
+            doc.setFontSize(8.5);
+            doc.setTextColor(...TEXT_DARK);
             doc.text(`N = ${size}`, colX[0] + 2, y + 5.5);
 
             const vals = [tv("dfs"), tv("ldfs"), tv("idfs"), mv("dfs")];
             vals.forEach((v, i) => {
               doc.setTextColor(...colorNum(i < 3 ? v : "0"));
               doc.setFont("helvetica", "normal");
+              doc.setFontSize(8.5);
               doc.text(v, colX[i + 1] + 2, y + 5.5);
             });
             y += 9;
@@ -2441,9 +2447,9 @@
           if (alertasActuales.length === 0) {
             doc.setFont("helvetica", "italic");
             doc.setFontSize(9);
-            doc.setTextColor(...GRAY);
+            doc.setTextColor(...TEXT_GRAY);
             doc.text(
-              "Sin alertas. Rendimiento dentro de parametros normales.",
+              "✓ Sin alertas. Rendimiento dentro de parametros normales.",
               margin,
               y,
             );
@@ -2456,26 +2462,26 @@
                   ? RED
                   : a.nivel === "warning"
                     ? ORANGE
-                    : BLUE;
+                    : NAVY_ACCENT;
               doc.setFillColor(...c);
-              doc.rect(margin, y, 3, 14, "F");
+              doc.rect(margin, y, 4, 15, "F");
               doc.setFillColor(...rowBg(i));
-              doc.rect(margin + 3, y, W - margin * 2 - 3, 14, "F");
+              doc.rect(margin + 4, y, W - margin * 2 - 4, 15, "F");
 
               doc.setFont("helvetica", "bold");
-              doc.setFontSize(8);
-              doc.setTextColor(...DARK);
+              doc.setFontSize(8.5);
+              doc.setTextColor(...TEXT_DARK);
               const tipoLimpio = a.tipo.replace(/[^a-zA-Z0-9_-]/g, "");
-              doc.text(`[${tipoLimpio}]`, margin + 6, y + 5);
+              doc.text(`[${tipoLimpio}]`, margin + 7, y + 5.5);
               doc.setFont("helvetica", "normal");
-              doc.setFontSize(7.5);
-              doc.setTextColor(...GRAY);
+              doc.setFontSize(8);
+              doc.setTextColor(...TEXT_GRAY);
               const lineas = doc.splitTextToSize(
                 a.mensaje,
-                W - margin * 2 - 12,
+                W - margin * 2 - 14,
               );
-              doc.text(lineas[0], margin + 6, y + 11);
-              y += 16;
+              doc.text(lineas[0], margin + 7, y + 11);
+              y += 17;
             });
           }
 
@@ -2498,17 +2504,17 @@
 
           // Leyenda de colores
           doc.setFont("helvetica", "bold");
-          doc.setFontSize(7.5);
+          doc.setFontSize(8.5);
           [
-            ["DFS", BLUE],
+            ["DFS", NAVY_LIGHT],
             ["LDFS", ORANGE],
             ["IDFS", [159, 24, 83]],
           ].forEach(([lbl, clr], i) => {
-            const lx = margin + i * 30;
+            const lx = margin + i * 32;
             doc.setFillColor(...clr);
-            doc.rect(lx, y + 1, 6, 4, "F");
-            doc.setTextColor(...DARK);
-            doc.text(lbl, lx + 8, y + 5);
+            doc.rect(lx, y + 1, 7, 4.5, "F");
+            doc.setTextColor(...TEXT_DARK);
+            doc.text(lbl, lx + 9, y + 5);
           });
           y += 12;
 
@@ -2519,18 +2525,18 @@
 
             const lineas = codigoActual.split("\n").slice(0, 50);
             doc.setFont("courier", "normal");
-            doc.setFontSize(7);
-            doc.setTextColor(...DARK);
+            doc.setFontSize(7.5);
+            doc.setTextColor(...TEXT_DARK);
 
             lineas.forEach((linea, i) => {
               checkPage(6);
               if (i % 2 === 0) {
-                doc.setFillColor(245, 247, 250);
+                doc.setFillColor(...BG_LIGHT);
                 doc.rect(margin, y - 3, W - margin * 2, 5.5, "F");
               }
-              doc.setTextColor(100, 100, 100);
+              doc.setTextColor(...TEXT_GRAY);
               doc.text(String(i + 1).padStart(3, " "), margin + 1, y + 1.5);
-              doc.setTextColor(...DARK);
+              doc.setTextColor(...TEXT_DARK);
               const cortada = doc.splitTextToSize(linea, W - margin * 2 - 12);
               doc.text(cortada[0] || "", margin + 10, y + 1.5);
               y += 5.5;
@@ -2539,8 +2545,8 @@
             if (codigoActual.split("\n").length > 50) {
               checkPage(8);
               doc.setFont("helvetica", "italic");
-              doc.setFontSize(7.5);
-              doc.setTextColor(...GRAY);
+              doc.setFontSize(8);
+              doc.setTextColor(...TEXT_GRAY);
               doc.text(
                 `... (se muestran las primeras 50 lineas de ${codigoActual.split("\n").length})`,
                 margin,
@@ -2556,8 +2562,8 @@
             sectionTitle("[CODIGO PERSONALIZADO] Métricas y alertas");
 
             doc.setFont("helvetica", "normal");
-            doc.setFontSize(8.5);
-            doc.setTextColor(...DARK);
+            doc.setFontSize(9);
+            doc.setTextColor(...TEXT_DARK);
 
             const analisis = analisisCodigoPersonalizado;
             const metricas = metricasCodigoPersonalizado || analisis.metricas || {};
@@ -2574,20 +2580,24 @@
             lineasResumen.forEach((texto) => {
               checkPage(5);
               doc.text(texto, margin, y);
-              y += 4.8;
+              y += 5.2;
             });
 
             if (alertas.length > 0) {
               checkPage(8);
               doc.setFont("helvetica", "bold");
-              doc.text("Alertas:", margin, y);
-              y += 5;
+              doc.setFontSize(9);
+              doc.setTextColor(...NAVY_MEDIUM);
+              doc.text("Alertas detectadas:", margin, y);
+              y += 6;
               doc.setFont("helvetica", "normal");
+              doc.setFontSize(8.5);
+              doc.setTextColor(...TEXT_DARK);
               alertas.slice(0, 5).forEach((alerta) => {
                 checkPage(6);
-                const texto = `- ${alerta.icono || '•'} ${alerta.tipo || 'ALERTA'}: ${alerta.mensaje || ''}`;
-                doc.text(doc.splitTextToSize(texto, W - margin * 2), margin, y);
-                y += 5;
+                const texto = `• ${alerta.tipo || 'ALERTA'}: ${alerta.mensaje || ''}`;
+                doc.text(doc.splitTextToSize(texto, W - margin * 2), margin + 2, y);
+                y += 5.5;
               });
             }
           }
@@ -2596,11 +2606,11 @@
           const total = doc.getNumberOfPages();
           for (let p = 1; p <= total; p++) {
             doc.setPage(p);
-            doc.setFillColor(...LGRAY);
+            doc.setFillColor(...NAVY_DARK);
             doc.rect(0, 290, W, 7, "F");
             doc.setFont("helvetica", "normal");
-            doc.setFontSize(7);
-            doc.setTextColor(...GRAY);
+            doc.setFontSize(7.5);
+            doc.setTextColor(...WHITE);
             doc.text(
               "OptiCode QA - Reporte de Auditoria de Algoritmos",
               margin,
