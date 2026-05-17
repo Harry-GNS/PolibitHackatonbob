@@ -6,10 +6,7 @@ Flujo: Bob IDE (manual) → Motor Local → watsonx.ai
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
 from pathlib import Path
-<<<<<<< HEAD
 import ast
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 import json
 import traceback
 import sys
@@ -177,7 +174,6 @@ def obtener_codigo(nombre):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-<<<<<<< HEAD
 @app.route('/api/analizar-codigo-personalizado', methods=['POST'])
 def analizar_codigo_personalizado():
     """Analiza código Python pegado por el usuario con heurísticas estáticas simples."""
@@ -436,8 +432,6 @@ def analizar_codigo_personalizado():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 @app.route('/api/ejecutar-benchmarks', methods=['POST'])
 def ejecutar_benchmarks():
     """Ejecuta motor_qa.py para benchmarks prácticos."""
@@ -459,7 +453,6 @@ def ejecutar_benchmarks():
         metricas_raw = json.loads(metricas_path.read_text(encoding='utf-8'))
         benchmarks = metricas_raw.get('benchmarks', {})
         
-<<<<<<< HEAD
         # Procesar para formato visual, preservando estructura de algoritmos
         metricas_procesadas = {}
         for size_str in sorted(benchmarks.keys(), key=lambda x: int(x)):
@@ -488,22 +481,6 @@ def ejecutar_benchmarks():
             if all_times:
                 metricas_procesadas[size_str]['time_ms'] = round(sum(all_times) / len(all_times), 2)
                 metricas_procesadas[size_str]['memory_mb'] = round(sum(all_mems) / len(all_mems), 2)
-
-
-
-=======
-        # Procesar para formato visual
-        metricas_procesadas = {}
-        for size_str, metrics in benchmarks.items():
-            size = int(size_str)
-            metricas_procesadas[size] = {
-                'n': size,
-                'time_ms': round(metrics['time_ms_mean'], 2),
-                'memory_mb': round(metrics['mem_bytes_peak_mean'] / (1024 * 1024), 2),
-                'samples_time': [round(t, 2) for t in metrics.get('time_ms_samples', [])],
-                'samples_memory': [round(m / (1024 * 1024), 2) for m in metrics.get('mem_bytes_peak_samples', [])]
-            }
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
         
         # Detectar alertas de rendimiento
         alertas = detectar_alertas(metricas_procesadas)
@@ -564,7 +541,6 @@ def detectar_alertas(metricas):
     if not metricas:
         return alertas
     
-<<<<<<< HEAD
     # Obtener valores ordenados por tamaño (convertir a int para ordenar correctamente)
     sizes = sorted(metricas.keys(), key=lambda x: int(x) if isinstance(x, str) else x)
     valores_tiempo = [metricas[s]['time_ms'] for s in sizes]
@@ -572,26 +548,13 @@ def detectar_alertas(metricas):
     
     # Convertir tamaños a int para comparaciones
     sizes_int = [int(s) if isinstance(s, str) else s for s in sizes]
-    
-=======
-    # Obtener valores ordenados por tamaño
-    sizes = sorted(metricas.keys())
-    valores_tiempo = [metricas[s]['time_ms'] for s in sizes]
-    valores_memoria = [metricas[s]['memory_mb'] for s in sizes]
-    
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
     # Detectar crecimiento exponencial
     if len(valores_tiempo) >= 2:
         for i in range(1, len(valores_tiempo)):
             tiempo_actual = valores_tiempo[i]
             tiempo_anterior = valores_tiempo[i-1]
-<<<<<<< HEAD
             size_actual = sizes_int[i]
             size_anterior = sizes_int[i-1]
-=======
-            size_actual = sizes[i]
-            size_anterior = sizes[i-1]
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
             
             if tiempo_anterior > 0:
                 ratio_tiempo = tiempo_actual / tiempo_anterior
@@ -878,10 +841,7 @@ if __name__ == '__main__':
     print("\n🔗 API Endpoints:")
     print("   GET  /api/bob-sessions - Lista análisis de Bob IDE")
     print("   GET  /api/codigos - Lista códigos disponibles")
-<<<<<<< HEAD
     print("   POST /api/analizar-codigo-personalizado - Analiza código pegado")
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
     print("   POST /api/ejecutar-benchmarks - Ejecuta benchmarks")
     print("   POST /api/integrar-watsonx - Integra y genera reporte")
     print("   GET  /api/reportes - Lista reportes finales")

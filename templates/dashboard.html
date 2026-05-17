@@ -274,7 +274,6 @@
         box-shadow: 0 0 0 3px rgba(78, 163, 184, 0.22);
       }
 
-<<<<<<< HEAD
       .custom-code-textarea {
         min-height: 10rem;
         resize: vertical;
@@ -316,8 +315,6 @@
         color: var(--accent-primary);
       }
 
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
       .sidebar-button {
         width: 100%;
         padding: 0.65rem 0.8rem;
@@ -822,7 +819,6 @@
         border: 1px dashed var(--border-default);
       }
 
-<<<<<<< HEAD
       /* Resumen Análisis */
       .resumen-titulo {
         font-size: 0.9rem;
@@ -883,32 +879,6 @@
         font-size: 0.78rem;
         color: var(--text-primary);
         line-height: 1.4;
-=======
-      /* Resumen Análisis - Diseño Integrado Profesional */
-      #resumenAnalisisCard {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-default);
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: var(--shadow-md);
-        transition: all 0.3s ease;
-      }
-
-      #resumenAnalisisCard:hover {
-        border-color: var(--border-accent);
-        box-shadow: var(--shadow-lg);
-      }
-
-      #resumenContenido {
-        font-family: 'JetBrains Mono', monospace;
-      }
-
-      /* Hover effect para las filas del resumen */
-      #resumenContenido > div > div > div:hover {
-        background: var(--bg-elevated) !important;
-        border-left-width: 4px !important;
-        padding-left: 1.15rem !important;
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
       }
 
       /* Spinner overlay for PDF */
@@ -1146,7 +1116,6 @@
         </section>
 
         <section class="content-section">
-<<<<<<< HEAD
           <h2 class="section-title">Código personalizado</h2>
           <div class="card" style="display: grid; gap: 0.85rem">
             <div style="color: var(--text-secondary); font-size: 0.86rem; line-height: 1.5">
@@ -1173,8 +1142,6 @@
         </section>
 
         <section class="content-section">
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           <h2 class="section-title">Análisis de rendimiento</h2>
           <div class="analysis-bento">
             <div class="card chart-wide">
@@ -1269,17 +1236,12 @@
       let metricsData = {};
       let alertasActuales = [];
       let codigoActual = ""; // contenido del archivo seleccionado
-<<<<<<< HEAD
       let fuenteCodigoActual = "N/A"; // archivo o texto personalizado seleccionado
       let bobActual = ""; // nombre del análisis seleccionado
       let resumenActual = null; // resumen del análisis MD
       let analisisCodigoPersonalizado = null;
       let metricasCodigoPersonalizado = null;
       let alertasCodigoPersonalizado = [];
-=======
-      let bobActual = ""; // nombre del análisis seleccionado
-      let resumenActual = null; // resumen del análisis MD
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
       // ── Init ─────────────────────────────────────────────────────────────────
       document.addEventListener("DOMContentLoaded", () => {
@@ -1396,10 +1358,7 @@
 
         if (!nombre) {
           codigoActual = "";
-<<<<<<< HEAD
           fuenteCodigoActual = "N/A";
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           return;
         }
 
@@ -1408,10 +1367,7 @@
           const data = await res.json();
           if (data.success) {
             codigoActual = data.contenido;
-<<<<<<< HEAD
             fuenteCodigoActual = nombre;
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
             log(
               `💻 Código cargado: ${nombre} (${data.contenido.split("\n").length} líneas)`,
               "success",
@@ -1422,7 +1378,6 @@
         }
       }
 
-<<<<<<< HEAD
       function usarCodigoPegado() {
         const textarea = document.getElementById("codigoPegadoInput");
         const codigo = textarea.value.trim();
@@ -1606,14 +1561,11 @@
         } catch (e) {
           log(`❌ Error analizando código pegado: ${e.message}`, "error");
           showToast(`No se pudo analizar: ${e.message}`, "error");
-        } finally {
+          } finally {
           btn.disabled = false;
           btn.textContent = "🔎 Analizar código pegado";
         }
       }
-
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
       // ── Ejecutar benchmarks ──────────────────────────────────────────────────
       async function ejecutarAuditoria() {
         const btn = document.getElementById("ejecutarBtn");
@@ -1672,7 +1624,6 @@
           return;
         }
 
-<<<<<<< HEAD
         let html = "";
 
         // Título
@@ -1681,43 +1632,16 @@
         }
 
         html += '<div class="resumen-items">';
-=======
-        let html = '<div style="display: flex; flex-direction: column; gap: 0;">';
-
-        // Título
-        if (resumen.titulo) {
-          html += `
-            <div style="padding: 1rem 1.2rem; background: var(--bg-elevated); border-bottom: 2px solid var(--accent-primary);">
-              <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.3px;">
-                ${resumen.titulo}
-              </h3>
-            </div>
-          `;
-        }
-
-        // Lista integrada de todos los elementos
-        html += '<div style="display: flex; flex-direction: column;">';
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
         // Puntos clave
         if (resumen.puntos_clave && resumen.puntos_clave.length > 0) {
           resumen.puntos_clave.forEach((punto) => {
             html += `
-<<<<<<< HEAD
                     <div class="resumen-item">
                         <div class="resumen-item-titulo">✅ Punto Clave</div>
                         <div class="resumen-item-contenido">${punto}</div>
                     </div>
                 `;
-=======
-              <div style="padding: 1rem 1.2rem; border-left: 3px solid var(--success); border-bottom: 1px solid var(--border-muted); background: var(--bg-secondary); display: flex; gap: 1rem; align-items: start; transition: all 0.2s;">
-                <div style="flex: 1;">
-                  <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--success); font-weight: 600; margin-bottom: 0.4rem;">KEY POINT</div>
-                  <div style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.6;">${punto}</div>
-                </div>
-              </div>
-            `;
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           });
         }
 
@@ -1725,21 +1649,11 @@
         if (resumen.cuellos_botella && resumen.cuellos_botella.length > 0) {
           resumen.cuellos_botella.forEach((cuello) => {
             html += `
-<<<<<<< HEAD
                     <div class="resumen-item cuellos-botella">
                         <div class="resumen-item-titulo">🔴 Cuello de Botella</div>
                         <div class="resumen-item-contenido">${cuello}</div>
                     </div>
                 `;
-=======
-              <div style="padding: 1rem 1.2rem; border-left: 3px solid var(--error); border-bottom: 1px solid var(--border-muted); background: var(--bg-secondary); display: flex; gap: 1rem; align-items: start; transition: all 0.2s;">
-                <div style="flex: 1;">
-                  <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--error); font-weight: 600; margin-bottom: 0.4rem;">BOTTLENECK</div>
-                  <div style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.6;">${cuello}</div>
-                </div>
-              </div>
-            `;
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           });
         }
 
@@ -1747,7 +1661,6 @@
         if (resumen.recomendaciones && resumen.recomendaciones.length > 0) {
           resumen.recomendaciones.forEach((rec) => {
             html += `
-<<<<<<< HEAD
                     <div class="resumen-item recomendacion">
                         <div class="resumen-item-titulo">💡 Recomendación</div>
                         <div class="resumen-item-contenido">${rec}</div>
@@ -1846,18 +1759,8 @@
             tipoComplejidad: tipoComplejidad // Marcar como análisis estático
           };
         });
-        
+
         return datos;
-=======
-              <div style="padding: 1rem 1.2rem; border-left: 3px solid var(--warning); border-bottom: 1px solid var(--border-muted); background: var(--bg-secondary); display: flex; gap: 1rem; align-items: start; transition: all 0.2s;">
-                <div style="flex: 1;">
-                  <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--warning); font-weight: 600; margin-bottom: 0.4rem;">RECOMMENDATION</div>
-                  <div style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.6;">${rec}</div>
-                </div>
-              </div>
-            `;
-          });
-        }
 
         // Complejidades encontradas
         if (resumen.metricas && resumen.metricas.complejidades_encontradas) {
@@ -1878,7 +1781,6 @@
         contenido.innerHTML = html;
         card.style.display = "block";
         log(`Resumen del análisis mostrado`, "success");
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
       }
 
       // ── Gráficos ──────────────────────────────────────────────────────────────
@@ -1886,7 +1788,6 @@
         const sizes = Object.keys(metricsData).sort(
           (a, b) => parseInt(a) - parseInt(b),
         );
-<<<<<<< HEAD
         
         if (sizes.length === 0) return;
         
@@ -1905,32 +1806,23 @@
           }
         });
         
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
         const labels = sizes.map((s) => `N=${s}`);
         const theme = getComputedStyle(document.documentElement);
         const colors = {
           dfs: theme.getPropertyValue("--accent-primary").trim(),
           ldfs: theme.getPropertyValue("--accent-secondary").trim(),
           idfs: theme.getPropertyValue("--error").trim(),
-<<<<<<< HEAD
           staticLine: theme.getPropertyValue("--warning").trim(), // Color para análisis estático
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           text: theme.getPropertyValue("--text-secondary").trim(),
           grid: theme.getPropertyValue("--border-muted").trim(),
           fillDfs: theme.getPropertyValue("--success-muted").trim(),
           fillLdfs: theme.getPropertyValue("--warning-muted").trim(),
           fillIdfs: theme.getPropertyValue("--error-muted").trim(),
-<<<<<<< HEAD
           fillStatic: theme.getPropertyValue("--warning-muted").trim(),
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
         };
 
         function gT(size, algo) {
           const m = metricsData[size];
-<<<<<<< HEAD
           if (algo) {
             return m[algo]?.time_ms_mean !== undefined
               ? m[algo].time_ms_mean
@@ -1946,22 +1838,10 @@
               : m.memory_mb || 0;
           }
           return m.memory_mb || 0;
-=======
-          return m[algo]?.time_ms_mean !== undefined
-            ? m[algo].time_ms_mean
-            : m.time_ms || 0;
-        }
-        function gM(size, algo) {
-          const m = metricsData[size];
-          return m[algo]?.mem_bytes_peak_mean !== undefined
-            ? m[algo].mem_bytes_peak_mean / (1024 * 1024)
-            : m.memory_mb || 0;
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
         }
 
         const ctx1 = document.getElementById("chartTiempo").getContext("2d");
         if (chartTiempo) chartTiempo.destroy();
-<<<<<<< HEAD
         
         // Datos para gráfico de tiempo
         const datasetsTiempo = esAnalisisBenchmark ? [
@@ -2013,51 +1893,11 @@
           }
         ];
         
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
         chartTiempo = new Chart(ctx1, {
           type: "line",
           data: {
             labels,
-<<<<<<< HEAD
             datasets: datasetsTiempo,
-=======
-            datasets: [
-              {
-                label: "DFS",
-                data: sizes.map((s) => gT(s, "dfs")),
-                borderColor: colors.dfs,
-                backgroundColor: colors.fillDfs,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: colors.dfs,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-              },
-              {
-                label: "LDFS",
-                data: sizes.map((s) => gT(s, "ldfs")),
-                borderColor: colors.ldfs,
-                backgroundColor: colors.fillLdfs,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: colors.ldfs,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-              },
-              {
-                label: "IDFS",
-                data: sizes.map((s) => gT(s, "idfs")),
-                borderColor: colors.idfs,
-                backgroundColor: colors.fillIdfs,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: colors.idfs,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-              },
-            ],
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           },
           options: {
             responsive: true,
@@ -2089,7 +1929,6 @@
 
         const ctx2 = document.getElementById("chartMemoria").getContext("2d");
         if (chartMemoria) chartMemoria.destroy();
-<<<<<<< HEAD
         
         // Datos para gráfico de memoria
         const datasetsMemoria = esAnalisisBenchmark ? [
@@ -2128,39 +1967,11 @@
           }
         ];
         
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
         chartMemoria = new Chart(ctx2, {
           type: "bar",
           data: {
             labels,
-<<<<<<< HEAD
             datasets: datasetsMemoria,
-=======
-            datasets: [
-              {
-                label: "DFS",
-                data: sizes.map((s) => gM(s, "dfs")),
-                backgroundColor: colors.dfs,
-                borderRadius: 8,
-                borderWidth: 0,
-              },
-              {
-                label: "LDFS",
-                data: sizes.map((s) => gM(s, "ldfs")),
-                backgroundColor: colors.ldfs,
-                borderRadius: 8,
-                borderWidth: 0,
-              },
-              {
-                label: "IDFS",
-                data: sizes.map((s) => gM(s, "idfs")),
-                backgroundColor: colors.idfs,
-                borderRadius: 8,
-                borderWidth: 0,
-              },
-            ],
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           },
           options: {
             responsive: true,
@@ -2203,7 +2014,6 @@
         sizes.forEach((size) => {
           const m = metricsData[size];
 
-<<<<<<< HEAD
           // Detectar si es análisis de benchmarks (tiene algoritmos) o análisis estático
           const esAnalisisBenchmark = m.dfs || m.ldfs || m.idfs;
 
@@ -2252,36 +2062,6 @@
               `;
             tbody.appendChild(tr);
           }
-=======
-          function t(algo) {
-            return m[algo]?.time_ms_mean !== undefined
-              ? m[algo].time_ms_mean.toFixed(2)
-              : (m.time_ms || 0).toFixed(2);
-          }
-          function mem(algo) {
-            return m[algo]?.mem_bytes_peak_mean !== undefined
-              ? (m[algo].mem_bytes_peak_mean / (1024 * 1024)).toFixed(3)
-              : (m.memory_mb || 0).toFixed(3);
-          }
-          function cls(v) {
-            const n = parseFloat(v);
-            return n > 1000
-              ? "value-error"
-              : n > 100
-                ? "value-warning"
-                : "value-good";
-          }
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-                <td><strong>N = ${size}</strong></td>
-                <td class="${cls(t("dfs"))}">${t("dfs")}</td>
-                <td class="${cls(t("ldfs"))}">${t("ldfs")}</td>
-                <td class="${cls(t("idfs"))}">${t("idfs")}</td>
-                <td class="${parseFloat(mem("dfs")) > 100 ? "value-warning" : "value-good"}">${mem("dfs")}</td>
-            `;
-          tbody.appendChild(tr);
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
         });
 
         document.getElementById("alertasCount").textContent =
@@ -2359,12 +2139,7 @@
           });
           doc.text(`Generado: ${fecha}`, margin, 40);
 
-<<<<<<< HEAD
           const archivoCodigo = fuenteCodigoActual || "N/A";
-=======
-          const archivoCodigo =
-            document.getElementById("codigoSelect").value || "N/A";
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           const archivoAnalisis =
             document.getElementById("bobAnalysisSelect").value || "N/A";
           doc.text(
@@ -2687,7 +2462,6 @@
             }
           }
 
-<<<<<<< HEAD
           // ── Sección 5: análisis del código pegado ───────────────────────
           if (analisisCodigoPersonalizado) {
             checkPage(18);
@@ -2730,8 +2504,6 @@
             }
           }
 
-=======
->>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
           // ── Pie de página en todas las páginas ────────────────────────────
           const total = doc.getNumberOfPages();
           for (let p = 1; p <= total; p++) {
