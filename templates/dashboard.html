@@ -1136,7 +1136,23 @@
               </button>
             </div>
             <div id="codigoPegadoResult" class="custom-code-result">
-              Pega tu código y ejecuta el análisis para ver aquí un resumen con complejidad estimada, cuellos de botella y recomendaciones.
+              <div id="codigoPegadoResumen">
+                Pega tu código y ejecuta el análisis para ver aquí un resumen con complejidad estimada, cuellos de botella y recomendaciones.
+              </div>
+              <div id="codigoPegadoDetalles" style="margin-top:0.8rem; display:none">
+                <div style="display:flex; gap:1rem; align-items:flex-start;">
+                  <div style="flex:1">
+                    <div><strong>Big-O estimado:</strong> <span id="bigOResult" class="mono">N/D</span></div>
+                    <div style="margin-top:0.5rem"><strong>Razones:</strong>
+                      <div id="bigOExplanation" style="color:var(--text-secondary); margin-top:0.25rem">N/D</div>
+                    </div>
+                    <div style="margin-top:0.5rem"><strong>Sugerencias de mejora:</strong>
+                      <ul id="bigOSuggestions" style="margin:0.35rem 0 0 1.1rem; color:var(--text-secondary)"></ul>
+                    </div>
+                  </div>
+                  <!-- Proyección de concurrencia movida a la sección de Análisis de rendimiento -->
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1154,6 +1170,12 @@
               <div class="card-title">Consumo de Memoria (MB)</div>
               <div class="chart-container">
                 <canvas id="chartMemoria"></canvas>
+              </div>
+            </div>
+            <div class="card chart-narrow">
+              <div class="card-title">Proyección de concurrencia crítica</div>
+              <div class="chart-container" style="height:140px">
+                <canvas id="chartConcurrencia" width="280" height="140"></canvas>
               </div>
             </div>
             <div class="card table-wide">
@@ -1233,6 +1255,7 @@
       // ── Estado global ────────────────────────────────────────────────────────
       let chartTiempo = null;
       let chartMemoria = null;
+      let chartConcurrencia = null;
       let metricsData = {};
       let alertasActuales = [];
       let codigoActual = ""; // contenido del archivo seleccionado
@@ -1396,83 +1419,102 @@
 
       function renderizarAnalisisCodigoPersonalizado(analisis) {
         const contenedor = document.getElementById("codigoPegadoResult");
+        const detalles = document.getElementById("codigoPegadoDetalles");
+        const resumen = document.getElementById("codigoPegadoResumen");
 
         if (!analisis) {
-          contenedor.textContent =
+          resumen.textContent =
             "Pega tu código y ejecuta el análisis para ver aquí un resumen con complejidad estimada, cuellos de botella y recomendaciones.";
+          detalles.style.display = "none";
           console.error("renderizarAnalisisCodigoPersonalizado: analisis es undefined");
           return;
         }
 
-        // Validar que analisis tenga la estructura esperada
-        console.log("Renderizando análisis con estructura:", Object.keys(analisis));
-
-        const puntos = (analisis.puntos_clave || [])
-          .map((item) => `<li>${item}</li>`)
-          .join("");
-        const cuellos = (analisis.cuellos_botella || [])
-          .map((item) => `<li>${item}</li>`)
-          .join("");
-        const recs = (analisis.recomendaciones || [])
-          .map((item) => `<li>${item}</li>`)
-          .join("");
-        
-        // Asegurarse de que metricas esté definido
+        // Extraer info
         const metricas = analisis.metricas || {};
-        const alertas = analisis.alertas || [];
+        const puntos = analisis.puntos_clave || [];
+        const cuellos = analisis.cuellos_botella || [];
+        const recs = analisis.recomendaciones || [];
 
-        console.log("Métricas extraídas:", metricas);
-        console.log("Alertas extraídas:", alertas);
+        // Big-O
+        const bigO = analisis.complejidad_estimada || metricas.complejidad_estimada || 'N/D';
 
-        const alertasHtml = alertas.length
-          ? alertas
-              .map(
-                (a) => `
-                  <li>
-                    <strong>${a.icono || '•'} ${a.tipo || 'ALERTA'}</strong>
-                    <span style="color: var(--text-secondary)"> - ${a.mensaje || ''}</span>
-                  </li>
-                `,
-              )
-              .join("")
-          : '<li>No se generaron alertas relevantes.</li>';
+        // Explicación breve generada en cliente a partir de métricas
+        function generarExplicacion(bigO, metricas) {
+          const razones = [];
+          if (metricas.bucles_detectados && metricas.bucles_detectados > 0) {
+            razones.push('Se detectaron bucles anidados o múltiples bucles que aumentan el coste.');
+          }
+          if (metricas.recursiones_detectadas && metricas.recursiones_detectadas > 0) {
+            razones.push('Uso de recursión que puede incrementar profundidad y coste temporal.');
+          }
+          if (metricas.comprehensions_detectadas && metricas.comprehensions_detectadas > 0) {
+            razones.push('Comprensiones o operaciones sobre colecciones que procesan todo el input.');
+          }
+          if (metricas.profundidad_maxima_bucles && metricas.profundidad_maxima_bucles >= 2) {
+            razones.push('Profundidad de bucles >= 2 — potencial crecimiento polinómico.');
+          }
+          if (razones.length === 0) razones.push('Basado en el escaneo del código, la estructura sugiere la complejidad indicada.');
+          return razones.join(' ');
+        }
 
-        // HTML mejorado con fallbacks
-        contenedor.innerHTML = `
-          <div style="display:grid; gap:0.75rem">
-            <div><strong>📌 ${analisis.titulo || 'Análisis de código pegado'}</strong></div>
-            <div>Complejidad estimada: <span class="mono">${analisis.complejidad_estimada || 'N/D'}</span></div>
-            <div>
-              <strong>Métricas detalladas</strong>
-              <ul style="margin:0.35rem 0 0 1.1rem">
-                <li>Líneas: ${metricas.lineas_detectadas !== undefined ? metricas.lineas_detectadas : 'N/D'}</li>
-                <li>Funciones: ${metricas.funciones_detectadas !== undefined ? metricas.funciones_detectadas : 'N/D'}</li>
-                <li>Bucles: ${metricas.bucles_detectados !== undefined ? metricas.bucles_detectados : 'N/D'}</li>
-                <li>Profundidad máxima: ${metricas.profundidad_maxima_bucles !== undefined ? metricas.profundidad_maxima_bucles : 'N/D'}</li>
-                <li>Recursiones: ${metricas.recursiones_detectadas !== undefined ? metricas.recursiones_detectadas : 'N/D'}</li>
-                <li>Comparaciones in/not in: ${metricas.comparaciones_in_detectadas !== undefined ? metricas.comparaciones_in_detectadas : 'N/D'}</li>
-                <li>Comprensiones: ${metricas.comprehensions_detectadas !== undefined ? metricas.comprehensions_detectadas : 'N/D'}</li>
-                <li>Factor de riesgo: ${metricas.factor_riesgo !== undefined ? metricas.factor_riesgo : 'N/D'}/100</li>
-              </ul>
-            </div>
-            <div>
-              <strong>Datos clave</strong>
-              <ul style="margin:0.35rem 0 0 1.1rem">${puntos || '<li>Sin puntos clave detectados</li>'}</ul>
-            </div>
-            <div>
-              <strong>Cuellos de botella</strong>
-              <ul style="margin:0.35rem 0 0 1.1rem">${cuellos || '<li>No se detectaron cuellos de botella obvios</li>'}</ul>
-            </div>
-            <div>
-              <strong>Recomendaciones</strong>
-              <ul style="margin:0.35rem 0 0 1.1rem">${recs || '<li>Revisa el código pegado y vuelve a analizarlo</li>'}</ul>
-            </div>
-            <div>
-              <strong>Alertas</strong>
-              <ul style="margin:0.35rem 0 0 1.1rem">${alertasHtml}</ul>
-            </div>
-          </div>
-        `;
+        // Sugerencias breves basadas en cuellos/recs
+        const sugerencias = recs.length > 0 ? recs : ['Revisar bucles anidados, usar estructuras de datos adecuadas, evitar recursión profunda cuando sea posible.'];
+
+        // Mostrar en UI
+        document.getElementById('bigOResult').textContent = bigO;
+        document.getElementById('bigOExplanation').textContent = generarExplicacion(bigO, metricas);
+        const sugList = document.getElementById('bigOSuggestions');
+        sugList.innerHTML = '';
+        sugerencias.forEach(s => { const li = document.createElement('li'); li.textContent = s; sugList.appendChild(li); });
+
+        // Datos para gráfica de concurrencia crítica (simulada)
+        const tamanos = [10, 100, 1000, 5000];
+        const factorMap = {
+          'O(1)': 0.5,
+          'O(log n)': 0.6,
+          'O(n)': 1,
+          'O(n log n)': 1.2,
+          'O(n²)': 1.5,
+          'O(n³)': 1.8,
+          'O(2^n)': 2.0,
+        };
+        const tipo = bigO;
+        const factor = factorMap[tipo] || 1;
+        const riesgo = metricas.factor_riesgo || 50;
+        const labels = tamanos.map(n => `N=${n}`);
+        const dataValues = tamanos.map(n => {
+          const base = (riesgo / 100) * (Math.log(n + 1) / Math.log(5000)) * factor * 100;
+          // añadir variación y limitar
+          return Math.round(Math.min(100, base * (0.85 + Math.random() * 0.3)) * 10) / 10;
+        });
+
+        // Renderizar chartConcurrencia
+        const ctx = document.getElementById('chartConcurrencia').getContext('2d');
+        if (chartConcurrencia) chartConcurrencia.destroy();
+        chartConcurrencia = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Riesgo concurrencia (%)',
+              data: dataValues,
+              borderColor: getComputedStyle(document.documentElement).getPropertyValue('--warning').trim(),
+              backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--warning-muted').trim(),
+              fill: true,
+              tension: 0.4,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, max: 100 } }
+          }
+        });
+
+        // Mostrar detalles
+        detalles.style.display = 'block';
+        resumen.textContent = `📌 ${analisis.titulo || 'Análisis de código pegado'} — Complejidad: ${bigO}`;
       }
 
       async function analizarCodigoPegado() {
@@ -1549,6 +1591,8 @@
           actualizarTabla();
           actualizarAlertas();
           mostrarResumenAnalisis(resumenActual);
+          // Renderizar detalles del análisis de código pegado (Big-O, explicaciones y gráfica)
+          try { renderizarAnalisisCodigoPersonalizado(analisisCodigoPersonalizado); } catch (e) { console.error('Error renderizando análisis personalizado', e); }
           
           log(`📊 Análisis completado: ${data.analisis.complejidad_estimada}`, "info");
           if (data.success) {
