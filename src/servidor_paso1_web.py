@@ -327,7 +327,7 @@ def analizar_codigo_personalizado():
                 alertas.append({
                     'tipo': 'BUCLE_ANIDADO',
                     'nivel': 'warning',
-                    'icono': '⚠️',
+                    'icono': 'WARNING',
                     'mensaje': f"Bucle anidado detectado en la línea {bucle['linea']}",
                     'linea': bucle['linea']
                 })
@@ -338,7 +338,7 @@ def analizar_codigo_personalizado():
             alertas.append({
                 'tipo': 'RECURSION',
                 'nivel': 'info',
-                'icono': '🔁',
+                'icono': 'RECURSION',
                 'mensaje': f"Recursión detectada en {rec['funcion']}() línea {rec['linea']}",
                 'linea': rec['linea']
             })
@@ -349,7 +349,7 @@ def analizar_codigo_personalizado():
             alertas.append({
                 'tipo': 'MEMBRESIA_LINEAL',
                 'nivel': 'warning',
-                'icono': '🔎',
+                'icono': 'SEARCH',
                 'mensaje': f"Posible búsqueda lineal con 'in/not in' en la línea {linea}",
                 'linea': linea
             })
@@ -360,7 +360,7 @@ def analizar_codigo_personalizado():
             alertas.append({
                 'tipo': 'COMPRENSIONES',
                 'nivel': 'info',
-                'icono': '🧩',
+                'icono': 'COMPREHENSION',
                 'mensaje': f"Se detectaron {len(visitor.comprehensions)} comprensiones de datos",
                 'cantidad': len(visitor.comprehensions)
             })
@@ -371,7 +371,7 @@ def analizar_codigo_personalizado():
             alertas.append({
                 'tipo': 'SIN_ALERTAS_CRITICAS',
                 'nivel': 'success',
-                'icono': '✅',
+                'icono': 'SUCCESS',
                 'mensaje': 'No se detectaron patrones críticos evidentes con las heurísticas básicas.'
             })
 
@@ -436,7 +436,7 @@ def analizar_codigo_personalizado():
 def ejecutar_benchmarks():
     """Ejecuta motor_qa.py para benchmarks prácticos."""
     try:
-        print("⚡ Iniciando benchmarks locales...")
+        print("Iniciando benchmarks locales...")
         
         # Ejecutar motor_qa
         run_benchmarks()
@@ -496,7 +496,7 @@ def ejecutar_benchmarks():
         
         return jsonify({
             "success": True,
-            "mensaje": "✅ Benchmarks completados exitosamente",
+            "mensaje": "Benchmarks completados exitosamente",
             "metricas": metricas_procesadas,
             "alertas": alertas,
             "resumen_analisis": resumen_analisis,
@@ -506,7 +506,7 @@ def ejecutar_benchmarks():
     except Exception as e:
         return jsonify({
             "success": False,
-            "error": f"❌ Error en benchmarks: {str(e)}",
+            "error": f"Error en benchmarks: {str(e)}",
             "traceback": traceback.format_exc()
         }), 500
 
@@ -565,7 +565,7 @@ def detectar_alertas(metricas):
                     alertas.append({
                         'tipo': 'COMPLEJIDAD_ALTA',
                         'nivel': 'warning',
-                        'icono': '⚠️',
+                        'icono': 'WARNING',
                         'mensaje': f'Crecimiento no lineal: N={size_anterior}→{size_actual}, tiempo crece {ratio_tiempo:.1f}x (esperado ~{ratio_tamaño:.1f}x)',
                         'tamaños': [size_anterior, size_actual]
                     })
@@ -575,7 +575,7 @@ def detectar_alertas(metricas):
                     alertas.append({
                         'tipo': 'TIEMPO_CRITICO',
                         'nivel': 'error',
-                        'icono': '🔴',
+                        'icono': 'CRITICAL',
                         'mensaje': f'Tiempo crítico en N={size_actual}: {tiempo_actual:.0f}ms (>1s)',
                         'tamaño': size_actual
                     })
@@ -586,7 +586,7 @@ def detectar_alertas(metricas):
         alertas.append({
             'tipo': 'MEMORIA_ALTA',
             'nivel': 'warning',
-            'icono': '💾',
+            'icono': 'MEMORY',
             'mensaje': f'Consumo de memoria elevado: {max_memoria:.1f} MB',
             'valor_mb': max_memoria
         })
@@ -604,7 +604,7 @@ def detectar_alertas(metricas):
             alertas.append({
                 'tipo': 'COMPLEJIDAD_ESTIMADA',
                 'nivel': 'info',
-                'icono': '📊',
+                'icono': 'INFO',
                 'mensaje': f'Complejidad estimada: O(N³) o peor (ratio promedio: {promedio_ratio:.1f}x)',
                 'ratio': promedio_ratio
             })
@@ -612,7 +612,7 @@ def detectar_alertas(metricas):
             alertas.append({
                 'tipo': 'COMPLEJIDAD_ESTIMADA',
                 'nivel': 'info',
-                'icono': '📊',
+                'icono': 'INFO',
                 'mensaje': f'Complejidad estimada: O(N²) (ratio promedio: {promedio_ratio:.1f}x)',
                 'ratio': promedio_ratio
             })
@@ -656,12 +656,12 @@ def resumir_analisis_md(contenido_md, max_puntos=5):
             if seccion_actual and buffer:
                 texto = '\n'.join(buffer).strip()
                 if seccion_actual == 'CUELLOS DE BOTELLA':
-                    # Extraer problemas marcados con 🔴
-                    if '🔴' in texto:
-                        problemas = re.findall(r'🔴.*?(?=🔴|$)', texto, re.DOTALL)
+                    # Extraer problemas marcados con [CRITICAL]
+                    if '[CRITICAL]' in texto:
+                        problemas = re.findall(r'\[CRITICAL\].*?(?=\[CRITICAL\]|$)', texto, re.DOTALL)
                         for p in problemas:
                             linea_problema = p.strip().split('\n')[0]
-                            resumen['cuellos_botella'].append(linea_problema.replace('🔴', '').strip())
+                            resumen['cuellos_botella'].append(linea_problema.replace('[CRITICAL]', '').strip())
                 elif seccion_actual == 'RECOMENDACIONES':
                     # Extraer recomendaciones numeradas
                     recs = re.findall(r'\d+\.\s+(.*?)(?=\d+\.|$)', texto, re.DOTALL)
@@ -704,7 +704,7 @@ def integrar_watsonx():
         # Cargar análisis de Bob
         bob_path = BOB_SESSIONS_DIR / bob_file
         if not bob_path.exists():
-            return jsonify({"error": f"❌ Archivo Bob no encontrado: {bob_file}"}), 404
+            return jsonify({"error": f"Archivo Bob no encontrado: {bob_file}"}), 404
         
         bob_analysis = bob_path.read_text(encoding='utf-8')
         
@@ -715,19 +715,19 @@ def integrar_watsonx():
             metricas = json.loads(metricas_path.read_text(encoding='utf-8'))
         
         # Enviar a watsonx.ai
-        print("🔗 Integrando con watsonx.ai...")
+        print("Integrando con watsonx.ai...")
         resultado_watsonx = summarize_metrics(bob_analysis)
         
         # Generar reporte final
-        reporte_final = f"""# 📊 REPORTE FINAL QA — OptiCode
+        reporte_final = f"""# REPORTE FINAL QA - OptiCode
 
-## 🔍 Análisis de Bob IDE
+## Analisis de Bob IDE
 
 {bob_analysis}
 
 ---
 
-## ⚡ Métricas Prácticas (Motor Local)
+## Metricas Practicas (Motor Local)
 
 ```json
 {json.dumps(metricas, indent=2)}
@@ -735,7 +735,7 @@ def integrar_watsonx():
 
 ---
 
-## 🤖 Resumen de watsonx.ai
+## Resumen de watsonx.ai
 
 {resultado_watsonx if resultado_watsonx else "Integración aún no configurada."}
 
@@ -751,7 +751,7 @@ def integrar_watsonx():
         
         return jsonify({
             "success": True,
-            "mensaje": "✅ Integración completada exitosamente",
+            "mensaje": "Integracion completada exitosamente",
             "archivo_reporte": str(reporte_path),
             "resumen_watsonx": resultado_watsonx or "Resumen disponible después de integración completa"
         })
@@ -759,7 +759,7 @@ def integrar_watsonx():
     except Exception as e:
         return jsonify({
             "success": False,
-            "error": f"❌ Error en integración: {str(e)}",
+            "error": f"Error en integracion: {str(e)}",
             "traceback": traceback.format_exc()
         }), 500
 
@@ -821,7 +821,7 @@ def estado():
         return jsonify({
             "success": True,
             "sistema": "OptiCode QA — PASO 1 Real",
-            "estado": "✅ Operacional",
+            "estado": "Operacional",
             "archivos_bob": bob_files,
             "reportes_generados": reportes,
             "metricas_disponibles": metricas_existe,
@@ -834,11 +834,11 @@ def estado():
 
 if __name__ == '__main__':
     print("\n" + "=" * 70)
-    print("🚀 SERVIDOR OptiCode QA — PASO 1 REAL")
+    print("SERVIDOR OptiCode QA - PASO 1 REAL")
     print("=" * 70)
-    print("\n📁 Flujo: Bob IDE (manual) → Motor Local → watsonx.ai")
-    print("\n🌐 Dashboard disponible en: http://localhost:5000")
-    print("\n🔗 API Endpoints:")
+    print("\nFlujo: Bob IDE (manual) -> Motor Local -> watsonx.ai")
+    print("\nDashboard disponible en: http://localhost:5000")
+    print("\nAPI Endpoints:")
     print("   GET  /api/bob-sessions - Lista análisis de Bob IDE")
     print("   GET  /api/codigos - Lista códigos disponibles")
     print("   POST /api/analizar-codigo-personalizado - Analiza código pegado")

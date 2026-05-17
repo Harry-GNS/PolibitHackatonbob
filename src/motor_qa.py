@@ -53,13 +53,13 @@ def run_benchmarks():
     graph_file = DATA_DIR / 'grafos_prueba.json'
 
     if not graph_file.exists():
-        print(f'❌ Error: No se encontró el archivo de datos en: {graph_file}')
+        print(f'Error: No se encontro el archivo de datos en: {graph_file}')
         return
 
     with open(graph_file, 'r', encoding='utf-8') as f:
         graph = json.load(f)
 
-    print("🚀 Iniciando Motor de Pruebas de Estrés...")
+    print("Iniciando Motor de Pruebas de Estres...")
 
     nodo_inicial = list(graph.keys())[0]
     nodo_final = list(graph.keys())[-1]
@@ -102,7 +102,7 @@ def run_benchmarks():
     with open(OUT_FILE, 'w', encoding='utf-8') as f:
         json.dump({'benchmarks': results}, f, indent=2)
 
-    print(f'\n✅ ¡Proceso terminado! Resultados guardados en: {OUT_FILE}')
+    print(f'\nProceso terminado! Resultados guardados en: {OUT_FILE}')
 
 
 if __name__ == '__main__':

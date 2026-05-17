@@ -78,28 +78,28 @@ Por favor, genera tu respuesta en un formato Markdown impecable y ejecutivo.
             project_id=PROJECT_ID
         )
 
-        print("🤖 Conectando con watsonx.ai (Llama 3.3 70B)...")
+        print("Conectando con watsonx.ai (Llama 3.3 70B)...")
         resultado = model.generate_text(prompt=prompt)
 
         # Guardar veredicto en data/
         ruta_salida = DATA_DIR / 'veredicto_final_auditoria.md'
         ruta_salida.write_text(resultado, encoding='utf-8')
-        print(f"✅ Veredicto guardado en: {ruta_salida}")
+        print(f"Veredicto guardado en: {ruta_salida}")
 
         return resultado
 
     except ImportError:
-        print("⚠️  ibm-watsonx-ai no instalado. Retornando resumen simulado.")
+        print("WARNING: ibm-watsonx-ai no instalado. Retornando resumen simulado.")
         return _resumen_simulado(practica_json)
     except Exception as e:
-        print(f"❌ Error en watsonx.ai: {e}")
+        print(f"Error en watsonx.ai: {e}")
         return _resumen_simulado(practica_json)
 
 
 def _resumen_simulado(practica_json: dict) -> str:
     """Genera un resumen local cuando watsonx no está disponible."""
     benchmarks = practica_json.get('benchmarks', {})
-    lineas = ["## 📊 Resumen Local (watsonx no disponible)\n"]
+    lineas = ["## Resumen Local (watsonx no disponible)\n"]
     for size, m in sorted(benchmarks.items(), key=lambda x: int(x[0])):
         t = m.get('time_ms_mean', m.get('dfs', {}).get('time_ms_mean', 0))
         mem = m.get('mem_bytes_peak_mean', m.get('dfs', {}).get('mem_bytes_peak_mean', 0))
@@ -123,10 +123,10 @@ def generar_veredicto_final():
             break
 
     if not ruta_teoria:
-        print("❌ No se encontró reporte teórico (.md). Genera uno primero.")
+        print("Error: No se encontro reporte teorico (.md). Genera uno primero.")
         sys.exit(1)
 
-    print(f"📄 Leyendo reporte teórico: {ruta_teoria.name}")
+    print(f"Leyendo reporte teorico: {ruta_teoria.name}")
     teoria = ruta_teoria.read_text(encoding='utf-8')
 
     resultado = summarize_metrics(teoria)
