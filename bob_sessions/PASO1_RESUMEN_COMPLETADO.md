@@ -15,21 +15,38 @@ Analizar la complejidad asintótica (Big-O) del código "conejillo de indias" us
 ## 📋 Tareas Completadas
 
 ### ✅ 1. Código Analizado
+<<<<<<< HEAD
 - **Archivo:** `src/algoritmos.py`
 - **Contenido:** Implementación base de búsqueda en grafos para la auditoría teórica:
   - `dfs()` - Depth-First Search
   - `iddfs()` - Iterative Deepening DFS
+=======
+- **Archivo:** `src/tarea.py` (127 líneas)
+- **Contenido:** Implementación de algoritmos de búsqueda en grafos:
+  - `dfs()` - Depth-First Search
+  - `ldfs()` - Limited Depth-First Search  
+  - `idfs()` - Iterative Deepening DFS
+  - `layout_jerarquico()` - Posicionamiento de nodos
+  - `dibujar_grafo()` - Visualización con NetworkX y Matplotlib
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 ### ✅ 2. Análisis de Complejidad Big-O Realizado
 
 **Instrucción dada a Bob IDE:**
+<<<<<<< HEAD
 > "Analiza la complejidad asintótica (Big-O) de esta función. Identifica las líneas exactas que generan cuellos de botella lógicos y exporta tu conclusión técnica en formato Markdown."
 
 **Resultado:** Análisis técnico exportado en Markdown para la auditoría manual
+=======
+> "Analiza la complejidad asintótica (Big-O) de tarea.py. Identifica las líneas exactas que generan cuellos de botella lógicos y exporta tu conclusión técnica en formato Markdown."
+
+**Resultado:** Análisis técnico completo de 598 líneas exportado
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 ### ✅ 3. Evidencia Exportada
 
 #### 📄 Archivo Principal de Análisis:
+<<<<<<< HEAD
 - **Ubicación:** `bob_sessions/bob_analisis_dfs.md`
 - **Tamaño:** evidencia Markdown del análisis de DFS
 - **Contenido:**
@@ -37,16 +54,33 @@ Analizar la complejidad asintótica (Big-O) del código "conejillo de indias" us
   - Cuellos de botella identificados
   - Recomendaciones de optimización
   - Evidencia para revisión manual en Bob IDE
+=======
+- **Ubicación:** `bob_sessions/analisis_complejidad_tarea.md`
+- **Tamaño:** 598 líneas
+- **Contenido:**
+  - Análisis línea por línea de cada función
+  - 2 diagramas Mermaid (flujo de ejecución y comparativa de complejidad)
+  - 5 cuellos de botella críticos identificados con líneas exactas
+  - Soluciones de código propuestas
+  - Tabla comparativa antes/después de optimizaciones
+  - Cálculo de impacto financiero en cloud
+  - Referencias técnicas
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 #### 📊 Datos de Prueba Creados:
 - **Ubicación:** `data/grafos_prueba.json`
 - **Contenido:** Grafo de 22 nodos (A-V) con estructura jerárquica
+<<<<<<< HEAD
 - **Propósito:** dataset de apoyo del proyecto, fuera del alcance de este paso
+=======
+- **Propósito:** Input para el motor de QA local (PASO 2)
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 ---
 
 ## 🔍 Hallazgos Principales del Análisis
 
+<<<<<<< HEAD
 ### 🔴 Cuellos de Botella Críticos Identificados:
 
 | Prioridad | Líneas | Función | Problema | Impacto |
@@ -54,6 +88,17 @@ Analizar la complejidad asintótica (Big-O) del código "conejillo de indias" us
 | 🔴 **P0** | 33-41 | `dfs()` | Llamadas repetidas a visualización / salidas costosas | **99% del tiempo** |
 | 🟡 **P1** | 12-14 | `dfs()` | Búsqueda en conjunto/recursión según entrada | **30-50% en grafos profundos** |
 | 🟢 **P2** | 6-7 | `dfs()` | Estructura auxiliar de visitados | **5-10%** |
+=======
+### 🔴 5 Cuellos de Botella Críticos Identificados:
+
+| Prioridad | Líneas | Función | Problema | Impacto |
+|-----------|--------|---------|----------|---------|
+| 🔴 **P0** | 68, 91 | `dfs()`, `ldfs()` | I/O en cada iteración (`dibujar_grafo()`) | **99% del tiempo** |
+| 🔴 **P0** | 106-108 | `idfs()` | Reexploración completa en cada límite | **70% operaciones redundantes** |
+| 🟡 **P1** | 75, 99 | `dfs()`, `ldfs()` | Búsqueda lineal `in camino` | **30-50% en grafos profundos** |
+| 🟡 **P1** | 76, 100 | `dfs()`, `ldfs()` | Copia de lista `camino + [vecino]` | **20-40% tiempo, 80-90% memoria** |
+| 🟢 **P2** | 62, 85 | `dfs()`, `ldfs()` | List comprehension para logging | **5-10%** |
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 ### 📊 Complejidad Detectada:
 
@@ -67,7 +112,14 @@ idfs()       | O(L × (V + E))   | O(L² × V² × E)      | 1000x+
 
 ### 💰 Impacto Financiero Estimado:
 
+<<<<<<< HEAD
 **Escenario:** el impacto financiero se reserva para el motor local y el integrador, que no forman parte del PASO 1.
+=======
+**Escenario: 100,000 grafos/día en AWS EC2**
+- Código actual: **$7,188/año** (12 instancias)
+- Código optimizado: **$359/año** (1 instancia)
+- **AHORRO: $6,829/año (95% reducción)**
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 ---
 
@@ -129,6 +181,7 @@ PolibitHackatonbob/
 
 ---
 
+<<<<<<< HEAD
 ## ✅ Cierre del PASO 1
 
 Este documento cubre únicamente la evidencia requerida para el PASO 1 del flujo del README:
@@ -138,6 +191,48 @@ Este documento cubre únicamente la evidencia requerida para el PASO 1 del flujo
 3. exportación de la evidencia a `bob_sessions/`
 
 Las fases de medición empírica local y el integrador con watsonx.ai quedan fuera de alcance en este entregable y se reservan para las siguientes etapas del proyecto.
+=======
+## ⏭️ Próximos Pasos
+
+### 🚀 PASO 2: Motor de Pruebas Local (Pendiente)
+
+**Objetivo:** Medir el rendimiento empírico real del código
+
+**Tareas:**
+1. Configurar `src/motor_qa.py` para ejecutar los algoritmos
+2. Crear bucles con datos escalados (N = 10, 100, 1000, 5000)
+3. Medir tiempo de ejecución (milisegundos) con `time.perf_counter()`
+4. Medir pico de memoria RAM con `tracemalloc`
+5. Exportar resultados a `data/metricas_salida.json`
+
+**Estructura del JSON esperado:**
+```json
+{
+  "benchmarks": {
+    "10": {
+      "time_ms_mean": 5.2,
+      "mem_bytes_peak_mean": 1240
+    },
+    "100": {
+      "time_ms_mean": 52.8,
+      "mem_bytes_peak_mean": 12400
+    },
+    ...
+  }
+}
+```
+
+### 🚀 PASO 3: Integrador watsonx.ai (Futuro)
+
+**Objetivo:** Cruzar análisis teórico (Bob) con métricas reales (motor local)
+
+**Tareas:**
+1. Conectar API de watsonx.ai (IBM Granite)
+2. Enviar análisis de Bob + métricas locales al agente
+3. Generar reporte final con discrepancias teoría vs práctica
+4. Calcular impacto financiero real
+5. Exportar a `output/REPORTE_FINAL_QA.md`
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 ---
 
@@ -146,10 +241,18 @@ Las fases de medición empírica local y el integrador con watsonx.ai quedan fue
 ### ✅ Checklist de Entregables (PASO 1):
 
 - [x] Carpeta `bob_sessions/` creada y poblada
+<<<<<<< HEAD
 - [x] Análisis técnico exportado (`.md`)
 - [x] Código organizado en `src/`
 - [x] Captura de pantalla del consumo de Bobcoins guardada en `bob_sessions/`
 - [x] Export task history de Bob IDE guardado en `bob_sessions/`
+=======
+- [x] Análisis técnico completo exportado (`.md`)
+- [x] Código organizado en `src/`
+- [x] Datos de prueba en `data/`
+- [ ] Captura de pantalla del consumo de Bobcoins (pendiente - hacer manualmente)
+- [ ] Export task history de Bob IDE (pendiente - hacer manualmente)
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 ### ⚠️ Acciones Manuales Requeridas:
 
@@ -157,6 +260,7 @@ Las fases de medición empírica local y el integrador con watsonx.ai quedan fue
    - Ir a **History**
    - Abrir la tarea de análisis de `tarea.py`
    - Desplegar el cuadro de consumo del encabezado
+<<<<<<< HEAD
   - Tomar **captura de pantalla** del consumo de Bobcoins
   - Hacer clic en **Export task history**
   - Guardar el archivo `.md` en `bob_sessions/`
@@ -165,6 +269,16 @@ Las fases de medición empírica local y el integrador con watsonx.ai quedan fue
   - Limpiar todas las credenciales del código
   - Verificar que `.env` esté en `.gitignore`
   - Asegurar que el repositorio sea **PÚBLICO**
+=======
+   - Tomar **captura de pantalla** del consumo de Bobcoins
+   - Hacer clic en **Export task history**
+   - Guardar el archivo `.md` en `bob_sessions/`
+
+2. **Antes de subir a GitHub:**
+   - Limpiar todas las credenciales del código
+   - Verificar que `.env` esté en `.gitignore`
+   - Asegurar que el repositorio sea **PÚBLICO**
+>>>>>>> f070f6795f7f9920715de3874a4d1595fa6f3425
 
 ---
 
