@@ -13,20 +13,21 @@ DATA_DIR = RAIZ_PROYECTO / 'data'
 BOB_SESSIONS_DIR = RAIZ_PROYECTO / 'output' / 'informesbob'
 
 # =========================================================================
-# CREDENCIALES — configuradas por Alex para el sandbox IBM pre-conectado
-# También se admite override desde variables de entorno (.env)
+# CREDENCIALES — Leer SOLO desde variables de entorno (.env)
 # =========================================================================
 try:
     from dotenv import load_dotenv
     import os
     load_dotenv()
-    API_KEY    = os.getenv('WATSONX_API_KEY',    "r7N0t-5xbndvsYVshMeoE1Ax_SSbLrbAbh0UM6TrDgIu")
-    PROJECT_ID = os.getenv('WATSONX_PROJECT_ID', "a4b3f3fe-9336-4169-8a54-d22d88de90a6")
-    URL_ENDPOINT = os.getenv('WATSONX_URL',      "https://us-south.ml.cloud.ibm.com")
+    API_KEY    = os.getenv('WATSONX_API_KEY')
+    PROJECT_ID = os.getenv('WATSONX_PROJECT_ID')
+    URL_ENDPOINT = os.getenv('WATSONX_URL')
+    
+    if not all([API_KEY, PROJECT_ID, URL_ENDPOINT]):
+        raise ValueError("Faltan credenciales en .env: WATSONX_API_KEY, WATSONX_PROJECT_ID, WATSONX_URL")
 except ImportError:
-    API_KEY      = "r7N0t-5xbndvsYVshMeoE1Ax_SSbLrbAbh0UM6TrDgIu"
-    PROJECT_ID   = "a4b3f3fe-9336-4169-8a54-d22d88de90a6"
-    URL_ENDPOINT = "https://us-south.ml.cloud.ibm.com"
+    print("ERROR: python-dotenv no instalado. Instala con: pip install python-dotenv")
+    sys.exit(1)
 
 
 # =========================================================================
