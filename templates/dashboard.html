@@ -778,66 +778,30 @@
         border: 1px dashed var(--border-default);
       }
 
-      /* Resumen Análisis */
-      .resumen-titulo {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-      }
-
-      .resumen-items {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1rem;
-      }
-
-      .resumen-item {
-        background: var(--bg-elevated);
+      /* Resumen Análisis - Diseño Integrado Profesional */
+      #resumenAnalisisCard {
+        background: var(--bg-secondary);
         border: 1px solid var(--border-default);
-        padding: 0.8rem;
-        border-radius: 14px;
-        font-size: 0.8rem;
-        box-shadow: var(--shadow-sm);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
         transition: all 0.3s ease;
       }
 
-      .resumen-item:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
+      #resumenAnalisisCard:hover {
+        border-color: var(--border-accent);
+        box-shadow: var(--shadow-lg);
       }
 
-      .resumen-item.cuellos-botella {
-        border-color: rgba(240, 139, 126, 0.35);
-        background: linear-gradient(
-          180deg,
-          var(--bg-elevated),
-          var(--error-muted)
-        );
+      #resumenContenido {
+        font-family: 'JetBrains Mono', monospace;
       }
 
-      .resumen-item.recomendacion {
-        border-color: rgba(78, 163, 184, 0.35);
-        background: linear-gradient(
-          180deg,
-          var(--bg-elevated),
-          var(--success-muted)
-        );
-      }
-
-      .resumen-item-titulo {
-        font-weight: 600;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        color: var(--text-secondary);
-        margin-bottom: 0.4rem;
-      }
-
-      .resumen-item-contenido {
-        font-size: 0.78rem;
-        color: var(--text-primary);
-        line-height: 1.4;
+      /* Hover effect para las filas del resumen */
+      #resumenContenido > div > div > div:hover {
+        background: var(--bg-elevated) !important;
+        border-left-width: 4px !important;
+        padding-left: 1.15rem !important;
       }
 
       /* Spinner overlay for PDF */
@@ -1363,24 +1327,33 @@
           return;
         }
 
-        let html = "";
+        let html = '<div style="display: flex; flex-direction: column; gap: 0;">';
 
         // Título
         if (resumen.titulo) {
-          html += `<div class="resumen-titulo">📊 ${resumen.titulo}</div>`;
+          html += `
+            <div style="padding: 1rem 1.2rem; background: var(--bg-elevated); border-bottom: 2px solid var(--accent-primary);">
+              <h3 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.3px;">
+                ${resumen.titulo}
+              </h3>
+            </div>
+          `;
         }
 
-        html += '<div class="resumen-items">';
+        // Lista integrada de todos los elementos
+        html += '<div style="display: flex; flex-direction: column;">';
 
         // Puntos clave
         if (resumen.puntos_clave && resumen.puntos_clave.length > 0) {
           resumen.puntos_clave.forEach((punto) => {
             html += `
-                    <div class="resumen-item">
-                        <div class="resumen-item-titulo">✅ Punto Clave</div>
-                        <div class="resumen-item-contenido">${punto}</div>
-                    </div>
-                `;
+              <div style="padding: 1rem 1.2rem; border-left: 3px solid var(--success); border-bottom: 1px solid var(--border-muted); background: var(--bg-secondary); display: flex; gap: 1rem; align-items: start; transition: all 0.2s;">
+                <div style="flex: 1;">
+                  <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--success); font-weight: 600; margin-bottom: 0.4rem;">KEY POINT</div>
+                  <div style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.6;">${punto}</div>
+                </div>
+              </div>
+            `;
           });
         }
 
@@ -1388,11 +1361,13 @@
         if (resumen.cuellos_botella && resumen.cuellos_botella.length > 0) {
           resumen.cuellos_botella.forEach((cuello) => {
             html += `
-                    <div class="resumen-item cuellos-botella">
-                        <div class="resumen-item-titulo">🔴 Cuello de Botella</div>
-                        <div class="resumen-item-contenido">${cuello}</div>
-                    </div>
-                `;
+              <div style="padding: 1rem 1.2rem; border-left: 3px solid var(--error); border-bottom: 1px solid var(--border-muted); background: var(--bg-secondary); display: flex; gap: 1rem; align-items: start; transition: all 0.2s;">
+                <div style="flex: 1;">
+                  <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--error); font-weight: 600; margin-bottom: 0.4rem;">BOTTLENECK</div>
+                  <div style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.6;">${cuello}</div>
+                </div>
+              </div>
+            `;
           });
         }
 
@@ -1400,31 +1375,35 @@
         if (resumen.recomendaciones && resumen.recomendaciones.length > 0) {
           resumen.recomendaciones.forEach((rec) => {
             html += `
-                    <div class="resumen-item recomendacion">
-                        <div class="resumen-item-titulo">💡 Recomendación</div>
-                        <div class="resumen-item-contenido">${rec}</div>
-                    </div>
-                `;
+              <div style="padding: 1rem 1.2rem; border-left: 3px solid var(--warning); border-bottom: 1px solid var(--border-muted); background: var(--bg-secondary); display: flex; gap: 1rem; align-items: start; transition: all 0.2s;">
+                <div style="flex: 1;">
+                  <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--warning); font-weight: 600; margin-bottom: 0.4rem;">RECOMMENDATION</div>
+                  <div style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.6;">${rec}</div>
+                </div>
+              </div>
+            `;
           });
         }
-
-        html += "</div>";
 
         // Complejidades encontradas
         if (resumen.metricas && resumen.metricas.complejidades_encontradas) {
           html += `
-                <div style="background: var(--bg-secondary); padding: 0.8rem; border-radius: 3px; font-size: 0.8rem;">
-                    <div class="resumen-item-titulo">📐 Complejidades Encontradas</div>
-                    <div style="font-family: 'Courier New', monospace; color: var(--accent-primary); word-break: break-all;">
-                        ${resumen.metricas.complejidades_encontradas.join(" | ")}
-                    </div>
+            <div style="padding: 1rem 1.2rem; border-left: 3px solid var(--accent-primary); background: var(--bg-secondary); display: flex; gap: 1rem; align-items: start;">
+              <div style="flex: 1;">
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-primary); font-weight: 600; margin-bottom: 0.4rem;">COMPLEXITY ANALYSIS</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent-hover); line-height: 1.8; word-break: break-all;">
+                  ${resumen.metricas.complejidades_encontradas.join(' • ')}
                 </div>
-            `;
+              </div>
+            </div>
+          `;
         }
+
+        html += '</div></div>';
 
         contenido.innerHTML = html;
         card.style.display = "block";
-        log(`📋 Resumen del análisis mostrado`, "success");
+        log(`Resumen del análisis mostrado`, "success");
       }
 
       // ── Gráficos ──────────────────────────────────────────────────────────────
