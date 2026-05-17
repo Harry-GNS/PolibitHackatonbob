@@ -2,11 +2,11 @@
   "benchmarks": {
     "10": {
       "dfs": {
-        "time_ms_mean": 0.1228,
+        "time_ms_mean": 0.1326,
         "time_ms_samples": [
-          0.1467,
-          0.1131,
-          0.1086
+          0.2147,
+          0.1154,
+          0.0677
         ],
         "mem_bytes_peak_mean": 536,
         "mem_bytes_peak_samples": [
@@ -16,11 +16,11 @@
         ]
       },
       "ldfs": {
-        "time_ms_mean": 0.0596,
+        "time_ms_mean": 0.105,
         "time_ms_samples": [
-          0.0617,
-          0.0559,
-          0.0613
+          0.0873,
+          0.1196,
+          0.1082
         ],
         "mem_bytes_peak_mean": 376,
         "mem_bytes_peak_samples": [
@@ -30,11 +30,11 @@
         ]
       },
       "idfs": {
-        "time_ms_mean": 0.2151,
+        "time_ms_mean": 0.3344,
         "time_ms_samples": [
-          0.2627,
-          0.1968,
-          0.1858
+          0.3587,
+          0.3629,
+          0.2816
         ],
         "mem_bytes_peak_mean": 408,
         "mem_bytes_peak_samples": [
@@ -43,11 +43,11 @@
           408
         ]
       },
-      "time_ms_mean": 0.1228,
+      "time_ms_mean": 0.1326,
       "time_ms_samples": [
-        0.1467,
-        0.1131,
-        0.1086
+        0.2147,
+        0.1154,
+        0.0677
       ],
       "mem_bytes_peak_mean": 536,
       "mem_bytes_peak_samples": [
@@ -58,11 +58,11 @@
     },
     "100": {
       "dfs": {
-        "time_ms_mean": 0.5933,
+        "time_ms_mean": 0.7613,
         "time_ms_samples": [
-          0.5928,
-          0.5802,
-          0.607
+          0.8611,
+          0.6204,
+          0.8023
         ],
         "mem_bytes_peak_mean": 1096,
         "mem_bytes_peak_samples": [
@@ -72,11 +72,11 @@
         ]
       },
       "ldfs": {
-        "time_ms_mean": 0.5152,
+        "time_ms_mean": 0.8733,
         "time_ms_samples": [
-          0.5178,
-          0.5267,
-          0.5012
+          0.8816,
+          0.871,
+          0.8673
         ],
         "mem_bytes_peak_mean": 936,
         "mem_bytes_peak_samples": [
@@ -86,11 +86,11 @@
         ]
       },
       "idfs": {
-        "time_ms_mean": 3.3141,
+        "time_ms_mean": 7.0954,
         "time_ms_samples": [
-          2.7533,
-          4.2753,
-          2.9138
+          4.2635,
+          11.1697,
+          5.853
         ],
         "mem_bytes_peak_mean": 968,
         "mem_bytes_peak_samples": [
@@ -99,11 +99,11 @@
           968
         ]
       },
-      "time_ms_mean": 0.5933,
+      "time_ms_mean": 0.7613,
       "time_ms_samples": [
-        0.5928,
-        0.5802,
-        0.607
+        0.8611,
+        0.6204,
+        0.8023
       ],
       "mem_bytes_peak_mean": 1096,
       "mem_bytes_peak_samples": [
@@ -114,11 +114,11 @@
     },
     "1000": {
       "dfs": {
-        "time_ms_mean": 10.3273,
+        "time_ms_mean": 9.1116,
         "time_ms_samples": [
-          11.985,
-          8.4392,
-          10.5577
+          10.1393,
+          7.979,
+          9.2165
         ],
         "mem_bytes_peak_mean": 8560,
         "mem_bytes_peak_samples": [
@@ -128,11 +128,11 @@
         ]
       },
       "ldfs": {
-        "time_ms_mean": 6.9169,
+        "time_ms_mean": 6.7386,
         "time_ms_samples": [
-          7.4105,
-          7.3655,
-          5.9746
+          6.1978,
+          6.9196,
+          7.0983
         ],
         "mem_bytes_peak_mean": 7597,
         "mem_bytes_peak_samples": [
@@ -142,24 +142,24 @@
         ]
       },
       "idfs": {
-        "time_ms_mean": 31.9488,
+        "time_ms_mean": 26.0116,
         "time_ms_samples": [
-          29.1603,
-          30.4123,
-          36.2738
+          26.9971,
+          25.2245,
+          25.8132
         ],
-        "mem_bytes_peak_mean": 7940,
+        "mem_bytes_peak_mean": 7629,
         "mem_bytes_peak_samples": [
           7704,
           7592,
-          8524
+          7592
         ]
       },
-      "time_ms_mean": 10.3273,
+      "time_ms_mean": 9.1116,
       "time_ms_samples": [
-        11.985,
-        8.4392,
-        10.5577
+        10.1393,
+        7.979,
+        9.2165
       ],
       "mem_bytes_peak_mean": 8560,
       "mem_bytes_peak_samples": [
@@ -170,58 +170,58 @@
     },
     "5000": {
       "dfs": {
-        "time_ms_mean": 52.2597,
+        "time_ms_mean": 39.2984,
         "time_ms_samples": [
-          56.1153,
-          50.3012,
-          50.3625
+          42.5977,
+          36.8924,
+          38.405
         ],
-        "mem_bytes_peak_mean": 54902,
+        "mem_bytes_peak_mean": 53481,
         "mem_bytes_peak_samples": [
-          56565,
-          53679,
-          54462
+          52760,
+          53402,
+          54281
         ]
       },
       "ldfs": {
-        "time_ms_mean": 41.6432,
+        "time_ms_mean": 32.8255,
         "time_ms_samples": [
-          43.1103,
-          41.982,
-          39.8372
+          34.4631,
+          32.8205,
+          31.193
         ],
-        "mem_bytes_peak_mean": 53389,
+        "mem_bytes_peak_mean": 57380,
         "mem_bytes_peak_samples": [
-          53622,
-          53033,
-          53514
+          56637,
+          62601,
+          52902
         ]
       },
       "idfs": {
-        "time_ms_mean": 142.6751,
+        "time_ms_mean": 127.9984,
         "time_ms_samples": [
-          137.7239,
-          148.5741,
-          141.7274
+          124.2316,
+          123.435,
+          136.3287
         ],
-        "mem_bytes_peak_mean": 54043,
+        "mem_bytes_peak_mean": 55704,
         "mem_bytes_peak_samples": [
-          55848,
-          52781,
-          53501
+          55823,
+          54573,
+          56716
         ]
       },
-      "time_ms_mean": 52.2597,
+      "time_ms_mean": 39.2984,
       "time_ms_samples": [
-        56.1153,
-        50.3012,
-        50.3625
+        42.5977,
+        36.8924,
+        38.405
       ],
-      "mem_bytes_peak_mean": 54902,
+      "mem_bytes_peak_mean": 53481,
       "mem_bytes_peak_samples": [
-        56565,
-        53679,
-        54462
+        52760,
+        53402,
+        54281
       ]
     }
   }

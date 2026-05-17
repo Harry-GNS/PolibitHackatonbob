@@ -1131,9 +1131,6 @@
               <button class="sidebar-button" type="button" onclick="analizarCodigoPegado()">
                 🔎 Analizar código pegado
               </button>
-              <button class="sidebar-button btn-pdf" type="button" onclick="usarCodigoPegado()">
-                ↩️ Usar en vista / PDF
-              </button>
             </div>
             <div id="codigoPegadoResult" class="custom-code-result">
               <div id="codigoPegadoResumen">
@@ -1632,6 +1629,7 @@
             resumenActual = data.resumen_analisis;
 
             actualizarGraficos();
+              try { chartConcurrencia = Chart.getChart(document.getElementById('chartConcurrencia')) || chartConcurrencia; } catch (e) {}
             actualizarTabla();
             actualizarAlertas();
 
@@ -2044,6 +2042,52 @@
             },
           },
         });
+
+        // ── Gráfica: Proyección de concurrencia crítica (se actualiza también en benchmarks)
+        try {
+          const ctx3 = document.getElementById('chartConcurrencia').getContext('2d');
+          if (chartConcurrencia) chartConcurrencia.destroy();
+
+          // Calcular valores de riesgo basados en tiempos relativos
+          const timeValues = sizes.map(s => {
+            if (esAnalisisBenchmark) {
+              // promedio simple entre algoritmos si existen
+              const v = [gT(s, 'dfs') || 0, gT(s, 'ldfs') || 0, gT(s, 'idfs') || 0];
+              const sum = v.reduce((a,b)=>a+b,0);
+              const cnt = v.filter(x=>x>0).length || 1;
+              return sum / cnt;
+            }
+            // análisis estático: usar el valor estimado de tiempo
+            return gT(s, null) || 0;
+          });
+
+          const maxT = Math.max(...timeValues, 1);
+          const dataValues = timeValues.map(t => Math.round((t / maxT) * 1000) / 10);
+
+          chartConcurrencia = new Chart(ctx3, {
+            type: 'line',
+            data: {
+              labels: sizes.map(s=>`N=${s}`),
+              datasets: [{
+                label: 'Riesgo concurrencia (%)',
+                data: dataValues,
+                borderColor: colors.staticLine || '#f39c12',
+                backgroundColor: colors.fillStatic || '#f39c12',
+                fill: true,
+                tension: 0.35,
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, max: 100 } }
+            }
+          });
+          // Asegurar referencia a la instancia real (Chart.js puede almacenar instancias en Chart.instances)
+          try { chartConcurrencia = Chart.getChart(document.getElementById('chartConcurrencia')) || chartConcurrencia; } catch (e){}
+        } catch (e) {
+          console.warn('No se pudo renderizar chartConcurrencia:', e);
+        }
       }
 
       // ── Tabla ────────────────────────────────────────────────────────────────
