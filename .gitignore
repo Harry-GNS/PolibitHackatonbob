@@ -1,0 +1,32 @@
+# Virtual Environments
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Credenciales (NUNCA subir)
+.env
+.env.local
+
+# Archivos temporales
+*.tmp
+*.log
+
+# IMPORTANTE: Sí subir estos
+# !bob_sessions/ - Análisis de Bob (evidencia obligatoria)
+# !output/REPORTE_FINAL_QA.md - Reporte final
+
+# Opcional: no subir métricas regenerables
+# data/metricas_salida.json

@@ -1,0 +1,2521 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OptiCode QA — Panel del Auditor</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-primary: #1a2332;
+        --bg-secondary: #222c3c;
+        --bg-tertiary: #273446;
+        --bg-elevated: #243142;
+        --bg-overlay: #2a374a;
+
+        --text-primary: #edf4fb;
+        --text-secondary: #a9b7c8;
+        --text-muted: #7f8ea2;
+
+        --accent-primary: #4ea3b8;
+        --accent-hover: #6ab8c9;
+        --accent-active: #3e8b9d;
+
+        --accent-secondary: #e08a3c;
+        --accent-secondary-hover: #eea45c;
+
+        --success: #4ea3b8;
+        --success-muted: rgba(78, 163, 184, 0.14);
+        --warning: #f7b844;
+        --warning-muted: rgba(247, 184, 68, 0.16);
+        --error: #f08b7e;
+        --error-muted: rgba(240, 139, 126, 0.14);
+
+        --border-default: #354354;
+        --border-muted: #2d3a4c;
+        --border-accent: #4ea3b8;
+
+        --shadow-sm: 0 8px 20px rgba(4, 10, 18, 0.28);
+        --shadow-md: 0 18px 40px rgba(4, 10, 18, 0.36);
+        --shadow-lg: 0 30px 70px rgba(4, 10, 18, 0.48);
+        --shadow-glow:
+          0 0 0 1px rgba(78, 163, 184, 0.14),
+          0 16px 36px rgba(78, 163, 184, 0.18);
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        font-family: "Inter", system-ui, sans-serif;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(78, 163, 184, 0.16),
+            transparent 28%
+          ),
+          radial-gradient(
+            circle at top right,
+            rgba(224, 138, 60, 0.13),
+            transparent 24%
+          ),
+          linear-gradient(180deg, #1a2332 0%, #111827 100%);
+        color: var(--text-primary);
+        overscroll-behavior: none;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow-y: auto;
+        overscroll-behavior: none;
+        padding: 0.45rem;
+        align-items: center;
+      }
+
+      .app-header {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        padding: 0.9rem 0.5rem 0.45rem;
+        box-shadow: none;
+        display: grid;
+        grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr) minmax(
+            120px,
+            1fr
+          );
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        z-index: 100;
+        backdrop-filter: blur(8px);
+        width: min(1440px, 100%);
+      }
+
+      .header-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+      }
+
+      .header-logo {
+        width: 3.1rem;
+        height: 3.1rem;
+        object-fit: contain;
+        display: block;
+      }
+
+      .app-header::before {
+        content: "";
+        position: absolute;
+        left: 0.5rem;
+        right: 0.5rem;
+        bottom: 0.1rem;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          var(--accent-primary) 50%,
+          transparent 100%
+        );
+        opacity: 0.38;
+      }
+
+      .header-kicker {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--text-secondary);
+        font-weight: 700;
+      }
+
+      .header-title {
+        font-size: clamp(2.4rem, 4vw, 4.5rem);
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        color: var(--text-primary);
+        line-height: 0.95;
+      }
+
+      .header-copy {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.1rem;
+      }
+
+      .header-subtitle {
+        margin-top: 0.35rem;
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+        line-height: 1.45;
+        max-width: 58ch;
+      }
+
+      .header-meta {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 0.45rem 0.85rem;
+        background: transparent;
+        border: 1px solid var(--border-muted);
+        border-radius: 999px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        box-shadow: none;
+        transition: all 0.3s ease;
+      }
+
+      .status-badge.running {
+        background: var(--accent-primary);
+        color: #08111a;
+        border-color: var(--accent-primary);
+        box-shadow: var(--shadow-glow);
+        animation: pulse 1.5s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.85;
+          transform: scale(1.02);
+        }
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        flex: 1;
+        min-height: 0;
+        overflow: visible;
+        padding-top: 0.35rem;
+        width: min(1440px, 100%);
+      }
+
+      .control-rail {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        padding: 0.6rem 0.5rem 0.75rem;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      .control-rail > div {
+        min-width: 0;
+      }
+
+      .control-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .control-stack .sidebar-input,
+      .control-stack .sidebar-button {
+        width: 100%;
+      }
+
+      .sidebar-section-title {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        letter-spacing: 0.14em;
+        margin-bottom: 0.55rem;
+        font-weight: 700;
+      }
+
+      .sidebar-input {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 0.82rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .sidebar-input:hover {
+        border-color: var(--border-accent);
+        background: var(--bg-overlay);
+      }
+
+      .sidebar-input:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(78, 163, 184, 0.22);
+      }
+
+      .custom-code-textarea {
+        min-height: 10rem;
+        resize: vertical;
+        cursor: text;
+        font-family: "JetBrains Mono", monospace;
+        line-height: 1.5;
+        white-space: pre;
+      }
+
+      .custom-code-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+      }
+
+      .custom-code-actions .sidebar-button {
+        flex: 1 1 16rem;
+        margin-bottom: 0;
+      }
+
+      .custom-code-result {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        padding: 0.9rem;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        line-height: 1.55;
+        box-shadow: var(--shadow-sm);
+        white-space: pre-wrap;
+      }
+
+      .custom-code-result strong {
+        color: var(--text-primary);
+      }
+
+      .custom-code-result .mono {
+        font-family: "JetBrains Mono", monospace;
+        color: var(--accent-primary);
+      }
+
+      .sidebar-button {
+        width: 100%;
+        padding: 0.65rem 0.8rem;
+        margin-bottom: 0.5rem;
+        border: none;
+        border-radius: 12px;
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(
+          135deg,
+          var(--accent-primary) 0%,
+          var(--accent-active) 100%
+        );
+        color: #071017;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sidebar-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.08),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .sidebar-button:hover:not(:disabled)::before {
+        left: 100%;
+      }
+
+      .sidebar-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow);
+      }
+
+      .sidebar-button:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .sidebar-button:disabled {
+        background: var(--bg-overlay);
+        color: var(--text-muted);
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      .sidebar-button.btn-pdf {
+        background: linear-gradient(
+          135deg,
+          var(--accent-secondary) 0%,
+          var(--warning) 100%
+        );
+      }
+
+      .sidebar-button.btn-pdf:hover:not(:disabled) {
+        box-shadow: 0 0 20px rgba(245, 169, 98, 0.4);
+      }
+
+      .status-block {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .status-pill {
+        border: 1px solid var(--border-muted);
+        border-radius: 14px;
+        background: rgba(34, 44, 60, 0.45);
+        padding: 0.75rem 0.9rem;
+        text-align: center;
+        box-shadow: none;
+      }
+
+      /* CONTENT */
+      .content {
+        padding: 1.15rem;
+        overflow: visible;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+
+      .content-section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 1rem;
+        font-weight: 800;
+        color: var(--text-secondary);
+        padding-bottom: 0.45rem;
+        border-bottom: 1px solid var(--border-muted);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
+        gap: 1rem;
+        align-items: stretch;
+      }
+
+      .workspace-header {
+        display: none;
+      }
+
+      .analysis-bento {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .analysis-bento .chart-wide {
+        grid-column: span 8;
+      }
+
+      .analysis-bento .chart-narrow {
+        grid-column: span 4;
+      }
+
+      .analysis-bento .table-wide {
+        grid-column: 1 / -1;
+      }
+
+      .summary-strip {
+        border: 0;
+        background: transparent;
+      }
+
+      .summary-strip .section-title {
+        margin-bottom: 0.9rem;
+      }
+
+      .card {
+        background: rgba(34, 44, 60, 0.32);
+        border: 1px solid var(--border-muted);
+        border-radius: 14px;
+        padding: 1.2rem;
+        box-shadow: none;
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        border-color: rgba(78, 163, 184, 0.28);
+        box-shadow: none;
+        transform: none;
+      }
+
+      .card-title {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 0.8rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+      }
+
+      .chart-container {
+        position: relative;
+        height: 240px;
+      }
+
+      .metrics-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.83rem;
+        background: transparent;
+        border-radius: 0;
+        overflow: hidden;
+        box-shadow: none;
+      }
+      .metrics-table thead {
+        background: rgba(34, 44, 60, 0.8);
+        border-bottom: 1px solid var(--border-accent);
+      }
+      .metrics-table th {
+        padding: 0.65rem 0.8rem;
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+        color: var(--accent-primary);
+      }
+      .metrics-table tbody tr:nth-child(odd) {
+        background: var(--bg-tertiary);
+      }
+      .metrics-table tbody tr {
+        border-bottom: 1px solid var(--border-muted);
+        transition: background 0.2s ease;
+      }
+      .metrics-table tbody tr:hover {
+        background: var(--bg-overlay);
+      }
+      .metrics-table td {
+        padding: 0.65rem 0.8rem;
+        color: var(--text-primary);
+      }
+
+      .value-good {
+        color: var(--success);
+        font-weight: 600;
+      }
+      .value-warning {
+        color: var(--warning);
+        font-weight: 600;
+      }
+      .value-error {
+        color: var(--error);
+        font-weight: 600;
+      }
+
+      .activity-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.7rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid var(--border-default);
+        background: rgba(34, 44, 60, 0.55);
+        color: var(--text-primary);
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: none;
+      }
+
+      .activity-button:hover {
+        border-color: var(--border-accent);
+      }
+
+      .activity-drawer {
+        position: fixed;
+        top: 0.7rem;
+        right: 0.7rem;
+        bottom: 0.7rem;
+        width: min(430px, calc(100vw - 1.4rem));
+        background: rgba(34, 44, 60, 0.96);
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: blur(6px);
+        transform: translateX(calc(100% + 1rem));
+        transition: transform 0.28s ease;
+        z-index: 1200;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .activity-drawer.open {
+        transform: translateX(0);
+      }
+
+      .activity-drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(18, 24, 22, 0.18);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 1100;
+      }
+
+      .activity-drawer-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-muted);
+      }
+
+      .drawer-title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+
+      .drawer-title strong {
+        font-size: 0.92rem;
+      }
+
+      .drawer-title span {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+      }
+
+      .drawer-close {
+        border: 1px solid var(--border-default);
+        background: var(--bg-secondary);
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+
+      .drawer-body {
+        padding: 1rem;
+        overflow: auto;
+        overscroll-behavior: contain;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .drawer-section {
+        border: 1px solid var(--border-default);
+        border-radius: 18px;
+        background: var(--bg-secondary);
+        overflow: hidden;
+      }
+
+      .drawer-section summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 0.9rem 1rem;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .drawer-section summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .drawer-section summary::after {
+        content: "+";
+        color: var(--text-secondary);
+      }
+
+      .drawer-section[open] summary::after {
+        content: "−";
+      }
+
+      .drawer-section .alerts-container,
+      .drawer-section .log-console {
+        max-height: none;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+        background: transparent;
+        padding-top: 0;
+      }
+
+      .drawer-section .log-console {
+        min-height: 18rem;
+      }
+
+      .log-console {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 0.8rem;
+        font-size: 0.78rem;
+        color: var(--text-primary);
+        flex: 1;
+        min-height: 0;
+        max-height: 18rem;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        line-height: 1.5;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      .log-console::-webkit-scrollbar {
+        width: 6px;
+      }
+      .log-console::-webkit-scrollbar-track {
+        background: var(--bg-primary);
+      }
+      .log-console::-webkit-scrollbar-thumb {
+        background: var(--border-default);
+        border-radius: 3px;
+      }
+
+      .log-line {
+        margin: 2px 0;
+      }
+      .log-success {
+        color: var(--success);
+      }
+      .log-error {
+        color: var(--error);
+      }
+      .log-warning {
+        color: var(--warning);
+      }
+      .log-info {
+        color: var(--accent-hover);
+      }
+      .log-timestamp {
+        color: var(--text-muted);
+      }
+
+      /* ALERTS */
+      .alerts-container {
+        max-height: 12rem;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+
+      .alerts-container::-webkit-scrollbar {
+        width: 6px;
+      }
+      .alerts-container::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .alerts-container::-webkit-scrollbar-thumb {
+        background: var(--border-default);
+        border-radius: 3px;
+      }
+
+      .alert {
+        padding: 0.7rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid var(--border-muted);
+        border-radius: 12px;
+        background: rgba(34, 44, 60, 0.35);
+        font-size: 0.8rem;
+        display: flex;
+        gap: 0.6rem;
+        box-shadow: none;
+        transition: all 0.3s ease;
+      }
+
+      .alert:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      .alert-icon {
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+      .alert-content {
+        flex: 1;
+      }
+      .alert-title {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        margin-bottom: 0.2rem;
+      }
+      .alert-message {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+      }
+      .alert.info {
+        border-color: rgba(78, 163, 184, 0.35);
+      }
+      .alert.info .alert-title {
+        color: var(--accent-primary);
+      }
+      .alert.warning {
+        border-color: rgba(247, 184, 68, 0.35);
+      }
+      .alert.warning .alert-title {
+        color: var(--warning);
+      }
+      .alert.error {
+        border-color: rgba(240, 139, 126, 0.35);
+      }
+      .alert.error .alert-title {
+        color: var(--error);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 1.2rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        background: var(--bg-secondary);
+        border-radius: 14px;
+        border: 1px dashed var(--border-default);
+      }
+
+      /* Resumen Análisis */
+      .resumen-titulo {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .resumen-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .resumen-item {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-default);
+        padding: 0.8rem;
+        border-radius: 14px;
+        font-size: 0.8rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .resumen-item:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .resumen-item.cuellos-botella {
+        border-color: rgba(240, 139, 126, 0.35);
+        background: linear-gradient(
+          180deg,
+          var(--bg-elevated),
+          var(--error-muted)
+        );
+      }
+
+      .resumen-item.recomendacion {
+        border-color: rgba(78, 163, 184, 0.35);
+        background: linear-gradient(
+          180deg,
+          var(--bg-elevated),
+          var(--success-muted)
+        );
+      }
+
+      .resumen-item-titulo {
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: 0.4rem;
+      }
+
+      .resumen-item-contenido {
+        font-size: 0.78rem;
+        color: var(--text-primary);
+        line-height: 1.4;
+      }
+
+      /* Spinner overlay for PDF */
+      .spinner-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, 0.88);
+        backdrop-filter: blur(10px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 1rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+      .spinner-overlay.active {
+        display: flex;
+      }
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 5px solid var(--border-default);
+        border-top-color: var(--accent-primary);
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        box-shadow: var(--shadow-glow);
+      }
+
+      .toast-stack {
+        position: fixed;
+        right: 1rem;
+        top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        z-index: 10000;
+        pointer-events: none;
+      }
+
+      .toast {
+        min-width: 260px;
+        max-width: 360px;
+        padding: 0.8rem 0.95rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-default);
+        background: rgba(34, 44, 60, 0.96);
+        box-shadow: none;
+        color: var(--text-primary);
+        font-size: 0.82rem;
+        transform: translateY(-6px);
+        opacity: 0;
+        animation: toast-in 0.25s ease-out forwards;
+      }
+
+      .toast.success {
+        border-color: rgba(78, 163, 184, 0.3);
+      }
+
+      .toast.error {
+        border-color: rgba(240, 139, 126, 0.3);
+      }
+
+      @keyframes toast-in {
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 1200px) {
+        body {
+          padding: 0.7rem;
+        }
+        .control-rail {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 900px) {
+        body {
+          overflow-y: auto;
+        }
+        .app-header {
+          grid-template-columns: 1fr;
+          text-align: center;
+        }
+        .header-meta {
+          justify-content: center;
+        }
+        .header-brand {
+          justify-content: center;
+        }
+        .content,
+        .control-rail {
+          border-radius: 18px;
+        }
+        .content {
+          min-height: auto;
+        }
+        .analysis-bento,
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .analysis-bento .chart-wide,
+        .analysis-bento .chart-narrow,
+        .analysis-bento .table-wide {
+          grid-column: auto;
+        }
+        .activity-drawer {
+          top: auto;
+          bottom: 0.6rem;
+          right: 0.6rem;
+          left: 0.6rem;
+          width: auto;
+          height: min(80vh, 42rem);
+        }
+        .activity-button {
+          width: 100%;
+          justify-content: center;
+        }
+        .control-rail {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast-stack" id="toastStack"></div>
+    <div class="spinner-overlay" id="spinnerOverlay">
+      <div class="spinner"></div>
+      <div>Generando PDF…</div>
+    </div>
+
+    <header class="app-header">
+      <div class="header-brand">
+        <img class="header-logo" src="/LOGOQA.png" alt="OptiCode QA" />
+        <div class="header-kicker">Panel del auditor</div>
+      </div>
+      <div class="header-copy">
+        <div class="header-title">OptiCode QA</div>
+        <div class="header-subtitle">
+          Teoría y práctica en una sola superficie.
+        </div>
+      </div>
+      <div class="header-meta">
+        <button
+          class="activity-button"
+          type="button"
+          onclick="toggleActivityDrawer()"
+        >
+          Actividad
+        </button>
+        <div class="status-badge" id="statusBadge">Listo</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="control-rail" aria-label="Controles de auditoría">
+        <div class="control-stack">
+          <div class="sidebar-section-title">📊 Análisis Bob IDE</div>
+          <small
+            style="
+              color: var(--text-secondary);
+              font-size: 0.7rem;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+          >
+            📁 Carpeta: output/informesbob/
+          </small>
+          <select
+            class="sidebar-input"
+            id="bobAnalysisSelect"
+            onchange="cargarContenidoBob()"
+          >
+            <option value="">Seleccionar análisis…</option>
+          </select>
+        </div>
+
+        <div class="control-stack">
+          <div class="sidebar-section-title">💻 Código a Analizar</div>
+          <select
+            class="sidebar-input"
+            id="codigoSelect"
+            onchange="previsualizarCodigo()"
+          >
+            <option value="">Seleccionar archivo…</option>
+          </select>
+        </div>
+
+        <div class="control-stack">
+          <div class="sidebar-section-title">⚙️ Acciones</div>
+          <button
+            class="sidebar-button"
+            id="ejecutarBtn"
+            onclick="ejecutarAuditoria()"
+          >
+            ⚡ EJECUTAR
+          </button>
+          <button
+            class="sidebar-button btn-pdf"
+            id="reporteBtn"
+            onclick="descargarPDF()"
+            disabled
+          >
+            📥 Descargar PDF
+          </button>
+        </div>
+
+        <div class="control-stack status-block">
+          <div class="sidebar-section-title">ℹ️ Estado</div>
+          <div class="status-pill">
+            <div id="alertasCount" style="font-size: 1.3rem; font-weight: 700">
+              0
+            </div>
+            <small>Alertas detectadas</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTENT -->
+      <div class="content">
+        <section class="content-section summary-strip">
+          <h2 class="section-title">Resumen del análisis</h2>
+          <div class="card" id="resumenAnalisisCard" style="display: none">
+            <div id="resumenContenido"></div>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <h2 class="section-title">Código personalizado</h2>
+          <div class="card" style="display: grid; gap: 0.85rem">
+            <div style="color: var(--text-secondary); font-size: 0.86rem; line-height: 1.5">
+              Pega aquí tu propio código Python para hacer un análisis estático rápido de complejidad, bucles, recursión y posibles cuellos de botella.
+            </div>
+            <textarea
+              id="codigoPegadoInput"
+              class="sidebar-input custom-code-textarea"
+              spellcheck="false"
+              placeholder="def mi_funcion(...):\n    ..."
+            ></textarea>
+            <div class="custom-code-actions">
+              <button class="sidebar-button" type="button" onclick="analizarCodigoPegado()">
+                🔎 Analizar código pegado
+              </button>
+              <button class="sidebar-button btn-pdf" type="button" onclick="usarCodigoPegado()">
+                ↩️ Usar en vista / PDF
+              </button>
+            </div>
+            <div id="codigoPegadoResult" class="custom-code-result">
+              Pega tu código y ejecuta el análisis para ver aquí un resumen con complejidad estimada, cuellos de botella y recomendaciones.
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <h2 class="section-title">Análisis de rendimiento</h2>
+          <div class="analysis-bento">
+            <div class="card chart-wide">
+              <div class="card-title">Tiempo de Ejecución (ms)</div>
+              <div class="chart-container">
+                <canvas id="chartTiempo"></canvas>
+              </div>
+            </div>
+            <div class="card chart-narrow">
+              <div class="card-title">Consumo de Memoria (MB)</div>
+              <div class="chart-container">
+                <canvas id="chartMemoria"></canvas>
+              </div>
+            </div>
+            <div class="card table-wide">
+              <h2 class="section-title" style="margin-bottom: 0.9rem">
+                Métricas detalladas
+              </h2>
+              <table class="metrics-table" id="metricsTable">
+                <thead>
+                  <tr>
+                    <th>Tamaño (N)</th>
+                    <th>DFS (ms)</th>
+                    <th>LDFS (ms)</th>
+                    <th>IDFS (ms)</th>
+                    <th>Mem DFS (MB)</th>
+                  </tr>
+                </thead>
+                <tbody id="metricsTableBody">
+                  <tr>
+                    <td colspan="5" class="empty-state">
+                      Sin datos. Ejecuta una auditoría primero.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section summary-strip">
+          <h2 class="section-title">⚠️ Alertas</h2>
+          <div class="card" id="alertasCard">
+            <div id="alertasContainer">
+              <div class="empty-state" style="padding: 0.8rem">
+                ✓ Sin alertas
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT PANEL -->
+    </main>
+
+    <div
+      class="activity-drawer-backdrop"
+      id="activityDrawerBackdrop"
+      onclick="closeActivityDrawer()"
+    ></div>
+    <aside class="activity-drawer" id="activityDrawer" aria-hidden="true">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <strong>Actividad</strong>
+          <span>Registro de ejecución</span>
+        </div>
+        <button
+          class="drawer-close"
+          type="button"
+          onclick="closeActivityDrawer()"
+        >
+          ×
+        </button>
+      </div>
+      <div class="drawer-body">
+        <details class="drawer-section" open>
+          <summary>📋 Log de ejecución</summary>
+          <div class="log-console" id="logConsole">
+            <div class="log-line log-info">
+              <span class="log-timestamp">[00:00:00]</span> Sistema iniciado.
+              Listo para auditar.
+            </div>
+          </div>
+        </details>
+      </div>
+    </aside>
+
+    <script>
+      // ── Estado global ────────────────────────────────────────────────────────
+      let chartTiempo = null;
+      let chartMemoria = null;
+      let metricsData = {};
+      let alertasActuales = [];
+      let codigoActual = ""; // contenido del archivo seleccionado
+      let fuenteCodigoActual = "N/A"; // archivo o texto personalizado seleccionado
+      let bobActual = ""; // nombre del análisis seleccionado
+      let resumenActual = null; // resumen del análisis MD
+      let analisisCodigoPersonalizado = null;
+      let metricasCodigoPersonalizado = null;
+      let alertasCodigoPersonalizado = [];
+
+      // ── Init ─────────────────────────────────────────────────────────────────
+      document.addEventListener("DOMContentLoaded", () => {
+        cargarAnalisisBob();
+        cargarCodigos();
+        log("🚀 Sistema OptiCode QA iniciado", "success");
+      });
+
+      // ── Log ───────────────────────────────────────────────────────────────────
+      function log(msg, tipo = "info") {
+        const consola = document.getElementById("logConsole");
+        const ts = new Date().toLocaleTimeString("es-ES");
+        consola.insertAdjacentHTML(
+          "beforeend",
+          `<div class="log-line log-${tipo}"><span class="log-timestamp">[${ts}]</span> ${msg}</div>`,
+        );
+        consola.scrollTop = consola.scrollHeight;
+      }
+
+      function showToast(message, type = "success") {
+        const stack = document.getElementById("toastStack");
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        stack.appendChild(toast);
+
+        window.setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transform = "translateY(-6px)";
+        }, 3000);
+
+        window.setTimeout(() => {
+          toast.remove();
+        }, 3400);
+      }
+
+      function toggleActivityDrawer(forceOpen = null) {
+        const drawer = document.getElementById("activityDrawer");
+        const backdrop = document.getElementById("activityDrawerBackdrop");
+        const shouldOpen =
+          forceOpen === null ? !drawer.classList.contains("open") : forceOpen;
+
+        drawer.classList.toggle("open", shouldOpen);
+        backdrop.classList.toggle("open", shouldOpen);
+        drawer.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
+      }
+
+      function closeActivityDrawer() {
+        toggleActivityDrawer(false);
+      }
+
+      // ── Cargar análisis Bob ──────────────────────────────────────────────────
+      async function cargarAnalisisBob() {
+        try {
+          const res = await fetch("/api/bob-sessions");
+          const data = await res.json();
+          const sel = document.getElementById("bobAnalysisSelect");
+          sel.innerHTML = '<option value="">Seleccionar análisis…</option>';
+
+          if (data.success && data.archivos && data.archivos.length > 0) {
+            data.archivos.forEach((a) => {
+              const opt = document.createElement("option");
+              opt.value = a.nombre;
+              opt.textContent = a.nombre.replace(".md", "");
+              sel.appendChild(opt);
+            });
+            sel.selectedIndex = 1;
+            bobActual = sel.value;
+            log(
+              `✅ ${data.total} análisis cargados desde output/informesbob/`,
+              "success",
+            );
+          } else {
+            log("ℹ️ Sin análisis en output/informesbob/", "warning");
+          }
+        } catch (e) {
+          log(`❌ Error cargando análisis Bob: ${e.message}`, "error");
+        }
+      }
+
+      function cargarContenidoBob() {
+        bobActual = document.getElementById("bobAnalysisSelect").value;
+        if (!bobActual) return;
+        log(`📄 Análisis seleccionado: ${bobActual}`, "info");
+      }
+
+      // ── Cargar códigos ───────────────────────────────────────────────────────
+      async function cargarCodigos() {
+        try {
+          const res = await fetch("/api/codigos");
+          const data = await res.json();
+          const sel = document.getElementById("codigoSelect");
+          sel.innerHTML = '<option value="">Seleccionar archivo…</option>';
+
+          if (data.success && data.archivos) {
+            data.archivos.forEach((a) => {
+              const opt = document.createElement("option");
+              opt.value = a.nombre;
+              opt.textContent = a.nombre;
+              // Guardamos el preview en el data attribute
+              opt.dataset.preview = a.contenido_preview || "";
+              sel.appendChild(opt);
+            });
+            log(`✅ ${data.total} archivos de código disponibles`, "success");
+          }
+        } catch (e) {
+          log(`❌ Error cargando códigos: ${e.message}`, "error");
+        }
+      }
+
+      async function previsualizarCodigo() {
+        const sel = document.getElementById("codigoSelect");
+        const nombre = sel.value;
+
+        if (!nombre) {
+          codigoActual = "";
+          fuenteCodigoActual = "N/A";
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/codigos/${nombre}`);
+          const data = await res.json();
+          if (data.success) {
+            codigoActual = data.contenido;
+            fuenteCodigoActual = nombre;
+            log(
+              `💻 Código cargado: ${nombre} (${data.contenido.split("\n").length} líneas)`,
+              "success",
+            );
+          }
+        } catch (e) {
+          log(`❌ Error cargando código: ${e.message}`, "error");
+        }
+      }
+
+      function usarCodigoPegado() {
+        const textarea = document.getElementById("codigoPegadoInput");
+        const codigo = textarea.value.trim();
+
+        if (!codigo) {
+          showToast("Pega primero tu código para usarlo en la vista", "warning");
+          return;
+        }
+
+        codigoActual = codigo;
+        fuenteCodigoActual = "Código pegado por el usuario";
+        document.getElementById("codigoSelect").value = "";
+        log("📝 Código pegado preparado para la vista y el PDF", "info");
+        showToast("Código pegado listo para análisis", "success");
+      }
+
+      function renderizarAnalisisCodigoPersonalizado(analisis) {
+        const contenedor = document.getElementById("codigoPegadoResult");
+
+        if (!analisis) {
+          contenedor.textContent =
+            "Pega tu código y ejecuta el análisis para ver aquí un resumen con complejidad estimada, cuellos de botella y recomendaciones.";
+          console.error("renderizarAnalisisCodigoPersonalizado: analisis es undefined");
+          return;
+        }
+
+        // Validar que analisis tenga la estructura esperada
+        console.log("Renderizando análisis con estructura:", Object.keys(analisis));
+
+        const puntos = (analisis.puntos_clave || [])
+          .map((item) => `<li>${item}</li>`)
+          .join("");
+        const cuellos = (analisis.cuellos_botella || [])
+          .map((item) => `<li>${item}</li>`)
+          .join("");
+        const recs = (analisis.recomendaciones || [])
+          .map((item) => `<li>${item}</li>`)
+          .join("");
+        
+        // Asegurarse de que metricas esté definido
+        const metricas = analisis.metricas || {};
+        const alertas = analisis.alertas || [];
+
+        console.log("Métricas extraídas:", metricas);
+        console.log("Alertas extraídas:", alertas);
+
+        const alertasHtml = alertas.length
+          ? alertas
+              .map(
+                (a) => `
+                  <li>
+                    <strong>${a.icono || '•'} ${a.tipo || 'ALERTA'}</strong>
+                    <span style="color: var(--text-secondary)"> - ${a.mensaje || ''}</span>
+                  </li>
+                `,
+              )
+              .join("")
+          : '<li>No se generaron alertas relevantes.</li>';
+
+        // HTML mejorado con fallbacks
+        contenedor.innerHTML = `
+          <div style="display:grid; gap:0.75rem">
+            <div><strong>📌 ${analisis.titulo || 'Análisis de código pegado'}</strong></div>
+            <div>Complejidad estimada: <span class="mono">${analisis.complejidad_estimada || 'N/D'}</span></div>
+            <div>
+              <strong>Métricas detalladas</strong>
+              <ul style="margin:0.35rem 0 0 1.1rem">
+                <li>Líneas: ${metricas.lineas_detectadas !== undefined ? metricas.lineas_detectadas : 'N/D'}</li>
+                <li>Funciones: ${metricas.funciones_detectadas !== undefined ? metricas.funciones_detectadas : 'N/D'}</li>
+                <li>Bucles: ${metricas.bucles_detectados !== undefined ? metricas.bucles_detectados : 'N/D'}</li>
+                <li>Profundidad máxima: ${metricas.profundidad_maxima_bucles !== undefined ? metricas.profundidad_maxima_bucles : 'N/D'}</li>
+                <li>Recursiones: ${metricas.recursiones_detectadas !== undefined ? metricas.recursiones_detectadas : 'N/D'}</li>
+                <li>Comparaciones in/not in: ${metricas.comparaciones_in_detectadas !== undefined ? metricas.comparaciones_in_detectadas : 'N/D'}</li>
+                <li>Comprensiones: ${metricas.comprehensions_detectadas !== undefined ? metricas.comprehensions_detectadas : 'N/D'}</li>
+                <li>Factor de riesgo: ${metricas.factor_riesgo !== undefined ? metricas.factor_riesgo : 'N/D'}/100</li>
+              </ul>
+            </div>
+            <div>
+              <strong>Datos clave</strong>
+              <ul style="margin:0.35rem 0 0 1.1rem">${puntos || '<li>Sin puntos clave detectados</li>'}</ul>
+            </div>
+            <div>
+              <strong>Cuellos de botella</strong>
+              <ul style="margin:0.35rem 0 0 1.1rem">${cuellos || '<li>No se detectaron cuellos de botella obvios</li>'}</ul>
+            </div>
+            <div>
+              <strong>Recomendaciones</strong>
+              <ul style="margin:0.35rem 0 0 1.1rem">${recs || '<li>Revisa el código pegado y vuelve a analizarlo</li>'}</ul>
+            </div>
+            <div>
+              <strong>Alertas</strong>
+              <ul style="margin:0.35rem 0 0 1.1rem">${alertasHtml}</ul>
+            </div>
+          </div>
+        `;
+      }
+
+      async function analizarCodigoPegado() {
+        const btn = document.querySelector(
+          'button[onclick="analizarCodigoPegado()"]',
+        );
+        const textarea = document.getElementById("codigoPegadoInput");
+        const codigo = textarea.value.trim();
+
+        if (!codigo) {
+          showToast("Pega primero un bloque de código Python", "warning");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "🔎 Analizando…";
+        log("🧪 Analizando código pegado por el usuario…", "info");
+
+        try {
+          const res = await fetch("/api/analizar-codigo-personalizado", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              codigo,
+              nombre: "codigo_pegado.py",
+            }),
+          });
+          const data = await res.json();
+
+          if (!data.success && !data.analisis) {
+            throw new Error(data.error || "No se pudo analizar el código");
+          }
+
+          if (!data.analisis) {
+            log("⚠️ Advertencia: data.analisis es undefined", "warning");
+            console.error("data.analisis es undefined. Data:", data);
+            throw new Error("La respuesta no contiene análisis válido");
+          }
+
+          // Guardar datos globales
+          analisisCodigoPersonalizado = data.analisis;
+          metricasCodigoPersonalizado = data.metricas || data.analisis?.metricas || null;
+          alertasCodigoPersonalizado = data.alertas || data.analisis?.alertas || [];
+          codigoActual = data.codigo || codigo;
+          fuenteCodigoActual = data.nombre || "Código pegado por el usuario";
+          document.getElementById("codigoSelect").value = "";
+          
+          // Preparar datos para mostrar en la sección de análisis de rendimiento
+          // Crear estructura compatible con metricsData
+          const metricasAnalisis = data.analisis.metricas || {};
+          const complejidad = data.analisis.complejidad_estimada || "O(N)";
+          
+          // Generar datos simulados basados en la complejidad estimada
+          metricsData = generarDatosSimuladosAnalisisEstatico(complejidad, metricasAnalisis);
+          
+          // Actualizar alertas
+          alertasActuales = alertasCodigoPersonalizado || [];
+          
+          // Crear resumen para mostrar
+          resumenActual = {
+            archivo: "codigo_pegado.py",
+            tipo_analisis: "Análisis Estático de Complejidad",
+            complejidad_estimada: data.analisis.complejidad_estimada || "N/D",
+            metricas: metricasAnalisis,
+            puntos_clave: data.analisis.puntos_clave || [],
+            cuellos_botella: data.analisis.cuellos_botella || [],
+            recomendaciones: data.analisis.recomendaciones || []
+          };
+          
+          // Actualizar visualización
+          actualizarGraficos();
+          actualizarTabla();
+          actualizarAlertas();
+          mostrarResumenAnalisis(resumenActual);
+          
+          log(`📊 Análisis completado: ${data.analisis.complejidad_estimada}`, "info");
+          if (data.success) {
+            log("✅ Código pegado analizado correctamente", "success");
+            showToast("Análisis de código completado", "success");
+          } else {
+            log("⚠️ Código pegado con advertencias de sintaxis", "warning");
+            showToast("Análisis completado con advertencias", "warning");
+          }
+        } catch (e) {
+          log(`❌ Error analizando código pegado: ${e.message}`, "error");
+          showToast(`No se pudo analizar: ${e.message}`, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "🔎 Analizar código pegado";
+        }
+      }
+
+      // ── Ejecutar benchmarks ──────────────────────────────────────────────────
+      async function ejecutarAuditoria() {
+        const btn = document.getElementById("ejecutarBtn");
+        const badge = document.getElementById("statusBadge");
+
+        btn.disabled = true;
+        badge.textContent = "Ejecutando…";
+        badge.className = "status-badge running";
+        log("⚡ Iniciando benchmarks locales…", "info");
+
+        try {
+          const res = await fetch("/api/ejecutar-benchmarks", {
+            method: "POST",
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            metricsData = data.metricas;
+            alertasActuales = data.alertas || [];
+            resumenActual = data.resumen_analisis;
+
+            actualizarGraficos();
+            actualizarTabla();
+            actualizarAlertas();
+
+            // Mostrar resumen del análisis
+            if (resumenActual) {
+              mostrarResumenAnalisis(resumenActual);
+            }
+
+            log("✅ Benchmarks completados exitosamente", "success");
+            badge.textContent = "Listo";
+            badge.className = "status-badge";
+            showToast("Auditoría completada ✓", "success");
+
+            document.getElementById("reporteBtn").disabled = false;
+          } else {
+            throw new Error(data.error);
+          }
+        } catch (e) {
+          log(`❌ Error: ${e.message}`, "error");
+          badge.textContent = "Error";
+          badge.className = "status-badge";
+          showToast(`Error en auditoría: ${e.message}`, "error");
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      function mostrarResumenAnalisis(resumen) {
+        const card = document.getElementById("resumenAnalisisCard");
+        const contenido = document.getElementById("resumenContenido");
+
+        if (!resumen || Object.keys(resumen).length === 0) {
+          card.style.display = "none";
+          return;
+        }
+
+        let html = "";
+
+        // Título
+        if (resumen.titulo) {
+          html += `<div class="resumen-titulo">📊 ${resumen.titulo}</div>`;
+        }
+
+        html += '<div class="resumen-items">';
+
+        // Puntos clave
+        if (resumen.puntos_clave && resumen.puntos_clave.length > 0) {
+          resumen.puntos_clave.forEach((punto) => {
+            html += `
+                    <div class="resumen-item">
+                        <div class="resumen-item-titulo">✅ Punto Clave</div>
+                        <div class="resumen-item-contenido">${punto}</div>
+                    </div>
+                `;
+          });
+        }
+
+        // Cuellos de botella
+        if (resumen.cuellos_botella && resumen.cuellos_botella.length > 0) {
+          resumen.cuellos_botella.forEach((cuello) => {
+            html += `
+                    <div class="resumen-item cuellos-botella">
+                        <div class="resumen-item-titulo">🔴 Cuello de Botella</div>
+                        <div class="resumen-item-contenido">${cuello}</div>
+                    </div>
+                `;
+          });
+        }
+
+        // Recomendaciones
+        if (resumen.recomendaciones && resumen.recomendaciones.length > 0) {
+          resumen.recomendaciones.forEach((rec) => {
+            html += `
+                    <div class="resumen-item recomendacion">
+                        <div class="resumen-item-titulo">💡 Recomendación</div>
+                        <div class="resumen-item-contenido">${rec}</div>
+                    </div>
+                `;
+          });
+        }
+
+        html += "</div>";
+
+        // Complejidades encontradas
+        if (resumen.metricas && resumen.metricas.complejidades_encontradas) {
+          html += `
+                <div style="background: var(--bg-secondary); padding: 0.8rem; border-radius: 3px; font-size: 0.8rem;">
+                    <div class="resumen-item-titulo">📐 Complejidades Encontradas</div>
+                    <div style="font-family: 'Courier New', monospace; color: var(--accent-primary); word-break: break-all;">
+                        ${resumen.metricas.complejidades_encontradas.join(" | ")}
+                    </div>
+                </div>
+            `;
+        }
+
+        contenido.innerHTML = html;
+        card.style.display = "block";
+        log(`📋 Resumen del análisis mostrado`, "success");
+      }
+
+      // ── Generar datos simulados para análisis estático ────────────────────────
+      function generarDatosSimuladosAnalisisEstatico(complejidad, metricas) {
+        // Tamaños de entrada para simular
+        const tamanos = [10, 100, 1000, 5000];
+        const datos = {};
+        
+        // Factores base para diferentes complejidades
+        const factores = {
+          'O(1)': { base: 0.1, multiplicador: 0 },
+          'O(log n)': { base: 0.2, multiplicador: 0.05 },
+          'O(n)': { base: 0.5, multiplicador: 0.1 },
+          'O(n log n)': { base: 0.8, multiplicador: 0.15 },
+          'O(n²)': { base: 1, multiplicador: 0.5 },
+          'O(n³)': { base: 2, multiplicador: 2 },
+          'O(2^n)': { base: 5, multiplicador: 100 }
+        };
+        
+        // Extraer el tipo de complejidad
+        let tipoComplejidad = 'O(n)'; // Por defecto
+        for (let key in factores) {
+          if (complejidad && complejidad.includes(key.replace('O', ''))) {
+            tipoComplejidad = key;
+            break;
+          }
+        }
+        
+        const factor = factores[tipoComplejidad] || factores['O(n)'];
+        const riesgo = metricas.factor_riesgo || 50;
+        
+        // Generar datos simulados
+        tamanos.forEach(n => {
+          let tiempo;
+          
+          switch(tipoComplejidad) {
+            case 'O(1)':
+              tiempo = factor.base;
+              break;
+            case 'O(log n)':
+              tiempo = factor.base + (Math.log(n) * factor.multiplicador);
+              break;
+            case 'O(n)':
+              tiempo = factor.base + (n * factor.multiplicador);
+              break;
+            case 'O(n log n)':
+              tiempo = factor.base + (n * Math.log(n) * factor.multiplicador);
+              break;
+            case 'O(n²)':
+              tiempo = factor.base + ((n * n) * factor.multiplicador);
+              break;
+            case 'O(n³)':
+              tiempo = factor.base + ((n * n * n) * factor.multiplicador);
+              break;
+            case 'O(2^n)':
+              tiempo = factor.base + (Math.pow(2, Math.min(n/100, 15)) * factor.multiplicador);
+              break;
+            default:
+              tiempo = factor.base + (n * factor.multiplicador);
+          }
+          
+          // Agregar variación aleatoria pequeña (~5%)
+          tiempo = tiempo * (0.95 + Math.random() * 0.1);
+          
+          // Memoria aumenta proporcionalmente al riesgo
+          const memoria = (riesgo / 100) * (n / 1000) * 0.5;
+          
+          datos[String(n)] = {
+            time_ms: Math.round(tiempo * 100) / 100,
+            memory_mb: Math.round(memoria * 1000) / 1000,
+            tipoComplejidad: tipoComplejidad // Marcar como análisis estático
+          };
+        });
+        
+        return datos;
+      }
+
+      // ── Gráficos ──────────────────────────────────────────────────────────────
+      function actualizarGraficos() {
+        const sizes = Object.keys(metricsData).sort(
+          (a, b) => parseInt(a) - parseInt(b),
+        );
+        
+        if (sizes.length === 0) return;
+        
+        // Detectar si es benchmark o análisis estático
+        const m = metricsData[sizes[0]];
+        const esAnalisisBenchmark = m && (m.dfs || m.ldfs || m.idfs);
+        const tieneComplejidadSimulada = m && m.tipoComplejidad;
+        
+        // Encontrar las tarjetas de gráficas
+        const chartsCards = document.querySelectorAll('.card.chart-wide, .card.chart-narrow');
+        
+        // Mostrar gráficas para benchmarks y análisis estático
+        chartsCards.forEach(card => {
+          if (card.querySelector('#chartTiempo') || card.querySelector('#chartMemoria')) {
+            card.style.display = "block";
+          }
+        });
+        
+        const labels = sizes.map((s) => `N=${s}`);
+        const theme = getComputedStyle(document.documentElement);
+        const colors = {
+          dfs: theme.getPropertyValue("--accent-primary").trim(),
+          ldfs: theme.getPropertyValue("--accent-secondary").trim(),
+          idfs: theme.getPropertyValue("--error").trim(),
+          staticLine: theme.getPropertyValue("--warning").trim(), // Color para análisis estático
+          text: theme.getPropertyValue("--text-secondary").trim(),
+          grid: theme.getPropertyValue("--border-muted").trim(),
+          fillDfs: theme.getPropertyValue("--success-muted").trim(),
+          fillLdfs: theme.getPropertyValue("--warning-muted").trim(),
+          fillIdfs: theme.getPropertyValue("--error-muted").trim(),
+          fillStatic: theme.getPropertyValue("--warning-muted").trim(),
+        };
+
+        function gT(size, algo) {
+          const m = metricsData[size];
+          if (algo) {
+            return m[algo]?.time_ms_mean !== undefined
+              ? m[algo].time_ms_mean
+              : m.time_ms || 0;
+          }
+          return m.time_ms || 0;
+        }
+        function gM(size, algo) {
+          const m = metricsData[size];
+          if (algo) {
+            return m[algo]?.mem_bytes_peak_mean !== undefined
+              ? m[algo].mem_bytes_peak_mean / (1024 * 1024)
+              : m.memory_mb || 0;
+          }
+          return m.memory_mb || 0;
+        }
+
+        const ctx1 = document.getElementById("chartTiempo").getContext("2d");
+        if (chartTiempo) chartTiempo.destroy();
+        
+        // Datos para gráfico de tiempo
+        const datasetsTiempo = esAnalisisBenchmark ? [
+          {
+            label: "DFS",
+            data: sizes.map((s) => gT(s, "dfs")),
+            borderColor: colors.dfs,
+            backgroundColor: colors.fillDfs,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: colors.dfs,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+          },
+          {
+            label: "LDFS",
+            data: sizes.map((s) => gT(s, "ldfs")),
+            borderColor: colors.ldfs,
+            backgroundColor: colors.fillLdfs,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: colors.ldfs,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+          },
+          {
+            label: "IDFS",
+            data: sizes.map((s) => gT(s, "idfs")),
+            borderColor: colors.idfs,
+            backgroundColor: colors.fillIdfs,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: colors.idfs,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+          },
+        ] : [
+          {
+            label: `Tiempo Estimado (${m.tipoComplejidad || 'Análisis Estático'})`,
+            data: sizes.map((s) => gT(s, null)),
+            borderColor: colors.staticLine,
+            backgroundColor: colors.fillStatic,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: colors.staticLine,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            borderWidth: 3,
+          }
+        ];
+        
+        chartTiempo = new Chart(ctx1, {
+          type: "line",
+          data: {
+            labels,
+            datasets: datasetsTiempo,
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+                labels: {
+                  color: colors.text,
+                  font: { family: "Inter" },
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "ms", color: colors.text },
+                ticks: { color: colors.text },
+                grid: { color: colors.grid },
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: colors.text },
+              },
+            },
+          },
+        });
+
+        const ctx2 = document.getElementById("chartMemoria").getContext("2d");
+        if (chartMemoria) chartMemoria.destroy();
+        
+        // Datos para gráfico de memoria
+        const datasetsMemoria = esAnalisisBenchmark ? [
+          {
+            label: "DFS",
+            data: sizes.map((s) => gM(s, "dfs")),
+            backgroundColor: colors.dfs,
+            borderColor: colors.dfs,
+            borderWidth: 2,
+            borderRadius: 4,
+          },
+          {
+            label: "LDFS",
+            data: sizes.map((s) => gM(s, "ldfs")),
+            backgroundColor: colors.ldfs,
+            borderColor: colors.ldfs,
+            borderWidth: 2,
+            borderRadius: 4,
+          },
+          {
+            label: "IDFS",
+            data: sizes.map((s) => gM(s, "idfs")),
+            backgroundColor: colors.idfs,
+            borderColor: colors.idfs,
+            borderWidth: 2,
+            borderRadius: 4,
+          },
+        ] : [
+          {
+            label: `Memoria Estimada (${m.tipoComplejidad || 'Análisis Estático'})`,
+            data: sizes.map((s) => gM(s, null)),
+            backgroundColor: colors.staticLine,
+            borderColor: colors.staticLine,
+            borderWidth: 2,
+            borderRadius: 4,
+          }
+        ];
+        
+        chartMemoria = new Chart(ctx2, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: datasetsMemoria,
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+                labels: {
+                  color: colors.text,
+                  font: { family: "Inter" },
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "MB", color: colors.text },
+                ticks: { color: colors.text },
+                grid: { color: colors.grid },
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: colors.text },
+              },
+            },
+          },
+        });
+      }
+
+      // ── Tabla ────────────────────────────────────────────────────────────────
+      function actualizarTabla() {
+        const tbody = document.getElementById("metricsTableBody");
+        tbody.innerHTML = "";
+
+        const sizes = Object.keys(metricsData).sort(
+          (a, b) => parseInt(a) - parseInt(b),
+        );
+
+        sizes.forEach((size) => {
+          const m = metricsData[size];
+
+          // Detectar si es análisis de benchmarks (tiene algoritmos) o análisis estático
+          const esAnalisisBenchmark = m.dfs || m.ldfs || m.idfs;
+
+          if (esAnalisisBenchmark) {
+            // Formato de benchmarks
+            function t(algo) {
+              return m[algo]?.time_ms_mean !== undefined
+                ? m[algo].time_ms_mean.toFixed(2)
+                : (m.time_ms || 0).toFixed(2);
+            }
+            function mem(algo) {
+              return m[algo]?.mem_bytes_peak_mean !== undefined
+                ? (m[algo].mem_bytes_peak_mean / (1024 * 1024)).toFixed(3)
+                : (m.memory_mb || 0).toFixed(3);
+            }
+            function cls(v) {
+              const n = parseFloat(v);
+              return n > 1000
+                ? "value-error"
+                : n > 100
+                  ? "value-warning"
+                  : "value-good";
+            }
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                  <td><strong>N = ${size}</strong></td>
+                  <td class="${cls(t("dfs"))}">${t("dfs")}</td>
+                  <td class="${cls(t("ldfs"))}">${t("ldfs")}</td>
+                  <td class="${cls(t("idfs"))}">${t("idfs")}</td>
+                  <td class="${parseFloat(mem("dfs")) > 100 ? "value-warning" : "value-good"}">${mem("dfs")}</td>
+              `;
+            tbody.appendChild(tr);
+          } else {
+            // Formato de análisis estático - mostrar simulación para cada tamaño
+            const tr = document.createElement("tr");
+            const timeClass = m.time_ms > 100 ? "value-warning" : "value-good";
+            const memClass = m.memory_mb > 100 ? "value-warning" : "value-good";
+            const tipoComp = m.tipoComplejidad || 'Simulado';
+            
+            tr.innerHTML = `
+                  <td><strong>N = ${size}</strong><br><span style="font-size: 0.8em; color: var(--text-tertiary);">${tipoComp}</span></td>
+                  <td class="${timeClass}">${(m.time_ms || 0).toFixed(2)}</td>
+                  <td colspan="2" style="text-align: center; color: var(--text-tertiary);">Análisis Estático</td>
+                  <td class="${memClass}">${(m.memory_mb || 0).toFixed(3)}</td>
+              `;
+            tbody.appendChild(tr);
+          }
+        });
+
+        document.getElementById("alertasCount").textContent =
+          alertasActuales.length;
+      }
+
+      // ── Alertas ───────────────────────────────────────────────────────────────
+      function actualizarAlertas() {
+        const container = document.getElementById("alertasContainer");
+        if (!alertasActuales || alertasActuales.length === 0) {
+          container.innerHTML =
+            '<div class="empty-state" style="padding:0.8rem;">✓ Sin alertas</div>';
+          return;
+        }
+        container.innerHTML = "";
+        alertasActuales.forEach((a) => {
+          const div = document.createElement("div");
+          div.className = `alert ${a.nivel}`;
+          div.innerHTML = `
+                <div class="alert-icon">${a.icono}</div>
+                <div class="alert-content">
+                    <div class="alert-title">${a.tipo}</div>
+                    <div class="alert-message">${a.mensaje}</div>
+                </div>`;
+          container.appendChild(div);
+        });
+      }
+
+      // ── Generar PDF ───────────────────────────────────────────────────────────
+      async function descargarPDF() {
+        document.getElementById("spinnerOverlay").classList.add("active");
+        log("📥 Generando PDF…", "info");
+
+        // Esperar un tick para que el spinner se pinte
+        await new Promise((r) => setTimeout(r, 80));
+
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({ unit: "mm", format: "a4" });
+          const W = 210,
+            margin = 14;
+          let y = 0;
+
+          // ── Paleta ────────────────────────────────────────────────────────
+          const BLUE = [78, 163, 184];
+          const DARK = [237, 244, 251];
+          const GRAY = [169, 183, 200];
+          const LGRAY = [45, 58, 76];
+          const GREEN = [78, 163, 184];
+          const ORANGE = [224, 138, 60];
+          const RED = [240, 139, 126];
+          const WHITE = [255, 255, 255];
+
+          // ── Portada ───────────────────────────────────────────────────────
+          doc.setFillColor(...BLUE);
+          doc.rect(0, 0, W, 55, "F");
+
+          doc.setTextColor(...WHITE);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(22);
+          doc.text("OPTICODE QA", margin, 22);
+
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "normal");
+          doc.text(
+            "Panel del Auditor - Reporte de Analisis de Rendimiento",
+            margin,
+            31,
+          );
+
+          doc.setFontSize(9);
+          const fecha = new Date().toLocaleString("es-ES", {
+            dateStyle: "long",
+            timeStyle: "short",
+          });
+          doc.text(`Generado: ${fecha}`, margin, 40);
+
+          const archivoCodigo = fuenteCodigoActual || "N/A";
+          const archivoAnalisis =
+            document.getElementById("bobAnalysisSelect").value || "N/A";
+          doc.text(
+            `Código analizado: ${archivoCodigo}   |   Analisis Bob: ${archivoAnalisis}`,
+            margin,
+            47,
+          );
+
+          y = 65;
+
+          // ── Función helpers ───────────────────────────────────────────────
+          function checkPage(needed = 20) {
+            if (y + needed > 280) {
+              doc.addPage();
+              y = 15;
+            }
+          }
+
+          function sectionTitle(txt) {
+            checkPage(14);
+            doc.setFillColor(...BLUE);
+            doc.rect(margin, y, W - margin * 2, 8, "F");
+            doc.setTextColor(...WHITE);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.text(txt.toUpperCase(), margin + 3, y + 5.5);
+            y += 12;
+            doc.setTextColor(...DARK);
+          }
+
+          function rowBg(i) {
+            return i % 2 === 0 ? [249, 250, 251] : WHITE;
+          }
+
+          // ── Sección 0: Resumen del Análisis ───────────────────────────────
+          if (resumenActual) {
+            sectionTitle("[RESUMEN] Analisis Bob IDE");
+
+            if (resumenActual.titulo) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(9);
+              doc.setTextColor(...DARK);
+              doc.text(`Analisis: ${resumenActual.titulo}`, margin, y);
+              y += 6;
+            }
+
+            // Puntos clave
+            if (
+              resumenActual.puntos_clave &&
+              resumenActual.puntos_clave.length > 0
+            ) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(...BLUE);
+              doc.text("[OK] Puntos Clave:", margin, y);
+              y += 4;
+
+              resumenActual.puntos_clave.slice(0, 3).forEach((punto) => {
+                checkPage(6);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7.5);
+                doc.setTextColor(...DARK);
+                const lineas = doc.splitTextToSize(
+                  `- ${punto}`,
+                  W - margin * 2 - 4,
+                );
+                doc.text(lineas[0] || "", margin + 2, y);
+                y += 5;
+              });
+              y += 2;
+            }
+
+            // Cuellos de botella
+            if (
+              resumenActual.cuellos_botella &&
+              resumenActual.cuellos_botella.length > 0
+            ) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(...RED);
+              doc.text("[CRITICO] Cuellos de Botella:", margin, y);
+              y += 4;
+
+              resumenActual.cuellos_botella.slice(0, 3).forEach((cuello) => {
+                checkPage(6);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7.5);
+                doc.setTextColor(...DARK);
+                const lineas = doc.splitTextToSize(
+                  `- ${cuello}`,
+                  W - margin * 2 - 4,
+                );
+                doc.text(lineas[0] || "", margin + 2, y);
+                y += 5;
+              });
+              y += 2;
+            }
+
+            // Recomendaciones
+            if (
+              resumenActual.recomendaciones &&
+              resumenActual.recomendaciones.length > 0
+            ) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(...GREEN);
+              doc.text("[RECOMENDACION] Propuestas:", margin, y);
+              y += 4;
+
+              resumenActual.recomendaciones.slice(0, 3).forEach((rec) => {
+                checkPage(6);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7.5);
+                doc.setTextColor(...DARK);
+                const lineas = doc.splitTextToSize(
+                  `- ${rec}`,
+                  W - margin * 2 - 4,
+                );
+                doc.text(lineas[0] || "", margin + 2, y);
+                y += 5;
+              });
+              y += 4;
+            }
+
+            // Complejidades
+            if (
+              resumenActual.metricas &&
+              resumenActual.metricas.complejidades_encontradas
+            ) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(7.5);
+              doc.setTextColor(...DARK);
+              const complejos =
+                resumenActual.metricas.complejidades_encontradas.join(" | ");
+              doc.text(`Complejidades: ${complejos}`, margin, y);
+              y += 6;
+            }
+
+            y += 4;
+          }
+
+          // ── Sección 1: Métricas Detalladas ────────────────────────────────
+          sectionTitle("[METRICAS] Detalles de Rendimiento");
+
+          const sizes = Object.keys(metricsData).sort(
+            (a, b) => parseInt(a) - parseInt(b),
+          );
+
+          // Cabecera tabla
+          const cols = [
+            "Tamaño N",
+            "DFS (ms)",
+            "LDFS (ms)",
+            "IDFS (ms)",
+            "Mem DFS (MB)",
+          ];
+          const colW = [30, 38, 38, 38, 42];
+          const colX = [margin];
+          colW.forEach((w, i) => {
+            if (i > 0) colX.push(colX[i - 1] + colW[i - 1]);
+          });
+
+          doc.setFillColor(...LGRAY);
+          doc.rect(margin, y, W - margin * 2, 8, "F");
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8);
+          doc.setTextColor(...DARK);
+          cols.forEach((c, i) => doc.text(c, colX[i] + 2, y + 5.5));
+          y += 9;
+
+          sizes.forEach((size, ri) => {
+            checkPage(9);
+            const m = metricsData[size];
+
+            function tv(algo) {
+              return m[algo]?.time_ms_mean !== undefined
+                ? m[algo].time_ms_mean.toFixed(2)
+                : (m.time_ms || 0).toFixed(2);
+            }
+            function mv(algo) {
+              return m[algo]?.mem_bytes_peak_mean !== undefined
+                ? (m[algo].mem_bytes_peak_mean / (1024 * 1024)).toFixed(3)
+                : (m.memory_mb || 0).toFixed(3);
+            }
+            function colorNum(v) {
+              const n = parseFloat(v);
+              return n > 1000 ? RED : n > 100 ? ORANGE : GREEN;
+            }
+
+            doc.setFillColor(...rowBg(ri));
+            doc.rect(margin, y, W - margin * 2, 8, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(...DARK);
+            doc.text(`N = ${size}`, colX[0] + 2, y + 5.5);
+
+            const vals = [tv("dfs"), tv("ldfs"), tv("idfs"), mv("dfs")];
+            vals.forEach((v, i) => {
+              doc.setTextColor(...colorNum(i < 3 ? v : "0"));
+              doc.setFont("helvetica", "normal");
+              doc.text(v, colX[i + 1] + 2, y + 5.5);
+            });
+            y += 9;
+          });
+
+          y += 6;
+
+          // ── Sección 2: Alertas ────────────────────────────────────────────
+          sectionTitle(`[ALERTAS] Detectadas (${alertasActuales.length})`);
+
+          if (alertasActuales.length === 0) {
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(9);
+            doc.setTextColor(...GRAY);
+            doc.text(
+              "Sin alertas. Rendimiento dentro de parametros normales.",
+              margin,
+              y,
+            );
+            y += 10;
+          } else {
+            alertasActuales.forEach((a, i) => {
+              checkPage(18);
+              const c =
+                a.nivel === "error"
+                  ? RED
+                  : a.nivel === "warning"
+                    ? ORANGE
+                    : BLUE;
+              doc.setFillColor(...c);
+              doc.rect(margin, y, 3, 14, "F");
+              doc.setFillColor(...rowBg(i));
+              doc.rect(margin + 3, y, W - margin * 2 - 3, 14, "F");
+
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(...DARK);
+              const tipoLimpio = a.tipo.replace(/[^a-zA-Z0-9_-]/g, "");
+              doc.text(`[${tipoLimpio}]`, margin + 6, y + 5);
+              doc.setFont("helvetica", "normal");
+              doc.setFontSize(7.5);
+              doc.setTextColor(...GRAY);
+              const lineas = doc.splitTextToSize(
+                a.mensaje,
+                W - margin * 2 - 12,
+              );
+              doc.text(lineas[0], margin + 6, y + 11);
+              y += 16;
+            });
+          }
+
+          y += 4;
+
+          // ── Sección 3: Gráficos ────────────────────────────────────────────
+          sectionTitle("[GRAFICOS] Rendimiento");
+
+          const chartT = document.getElementById("chartTiempo");
+          const chartM = document.getElementById("chartMemoria");
+          const imgT = chartT.toDataURL("image/png", 0.95);
+          const imgMem = chartM.toDataURL("image/png", 0.95);
+          const gW = (W - margin * 2 - 6) / 2;
+          const gH = gW * 0.65;
+
+          checkPage(gH + 6);
+          doc.addImage(imgT, "PNG", margin, y, gW, gH);
+          doc.addImage(imgMem, "PNG", margin + gW + 6, y, gW, gH);
+          y += gH + 4;
+
+          // Leyenda de colores
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(7.5);
+          [
+            ["DFS", BLUE],
+            ["LDFS", ORANGE],
+            ["IDFS", [159, 24, 83]],
+          ].forEach(([lbl, clr], i) => {
+            const lx = margin + i * 30;
+            doc.setFillColor(...clr);
+            doc.rect(lx, y + 1, 6, 4, "F");
+            doc.setTextColor(...DARK);
+            doc.text(lbl, lx + 8, y + 5);
+          });
+          y += 12;
+
+          // ── Sección 4: Código analizado ───────────────────────────────────
+          if (codigoActual) {
+            checkPage(20);
+            sectionTitle(`[CODIGO] Analizado: ${archivoCodigo}`);
+
+            const lineas = codigoActual.split("\n").slice(0, 50);
+            doc.setFont("courier", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...DARK);
+
+            lineas.forEach((linea, i) => {
+              checkPage(6);
+              if (i % 2 === 0) {
+                doc.setFillColor(245, 247, 250);
+                doc.rect(margin, y - 3, W - margin * 2, 5.5, "F");
+              }
+              doc.setTextColor(100, 100, 100);
+              doc.text(String(i + 1).padStart(3, " "), margin + 1, y + 1.5);
+              doc.setTextColor(...DARK);
+              const cortada = doc.splitTextToSize(linea, W - margin * 2 - 12);
+              doc.text(cortada[0] || "", margin + 10, y + 1.5);
+              y += 5.5;
+            });
+
+            if (codigoActual.split("\n").length > 50) {
+              checkPage(8);
+              doc.setFont("helvetica", "italic");
+              doc.setFontSize(7.5);
+              doc.setTextColor(...GRAY);
+              doc.text(
+                `... (se muestran las primeras 50 lineas de ${codigoActual.split("\n").length})`,
+                margin,
+                y + 4,
+              );
+              y += 10;
+            }
+          }
+
+          // ── Sección 5: análisis del código pegado ───────────────────────
+          if (analisisCodigoPersonalizado) {
+            checkPage(18);
+            sectionTitle("[CODIGO PERSONALIZADO] Métricas y alertas");
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8.5);
+            doc.setTextColor(...DARK);
+
+            const analisis = analisisCodigoPersonalizado;
+            const metricas = metricasCodigoPersonalizado || analisis.metricas || {};
+            const alertas = alertasCodigoPersonalizado || analisis.alertas || [];
+
+            const lineasResumen = [
+              `Complejidad estimada: ${analisis.complejidad_estimada || 'N/D'}`,
+              `Líneas: ${metricas.lineas_detectadas ?? 'N/D'} | Funciones: ${metricas.funciones_detectadas ?? 'N/D'}`,
+              `Bucles: ${metricas.bucles_detectados ?? 'N/D'} | Profundidad máxima: ${metricas.profundidad_maxima_bucles ?? 'N/D'}`,
+              `Recursiones: ${metricas.recursiones_detectadas ?? 'N/D'} | Comparaciones in/not in: ${metricas.comparaciones_in_detectadas ?? 'N/D'}`,
+              `Factor de riesgo: ${metricas.factor_riesgo ?? 'N/D'}/100`,
+            ];
+
+            lineasResumen.forEach((texto) => {
+              checkPage(5);
+              doc.text(texto, margin, y);
+              y += 4.8;
+            });
+
+            if (alertas.length > 0) {
+              checkPage(8);
+              doc.setFont("helvetica", "bold");
+              doc.text("Alertas:", margin, y);
+              y += 5;
+              doc.setFont("helvetica", "normal");
+              alertas.slice(0, 5).forEach((alerta) => {
+                checkPage(6);
+                const texto = `- ${alerta.icono || '•'} ${alerta.tipo || 'ALERTA'}: ${alerta.mensaje || ''}`;
+                doc.text(doc.splitTextToSize(texto, W - margin * 2), margin, y);
+                y += 5;
+              });
+            }
+          }
+
+          // ── Pie de página en todas las páginas ────────────────────────────
+          const total = doc.getNumberOfPages();
+          for (let p = 1; p <= total; p++) {
+            doc.setPage(p);
+            doc.setFillColor(...LGRAY);
+            doc.rect(0, 290, W, 7, "F");
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...GRAY);
+            doc.text(
+              "OptiCode QA - Reporte de Auditoria de Algoritmos",
+              margin,
+              294.5,
+            );
+            doc.text(`Página ${p} / ${total}`, W - margin - 20, 294.5);
+          }
+
+          // ── Guardar ───────────────────────────────────────────────────────
+          const ts = new Date()
+            .toISOString()
+            .replace(/[:.]/g, "-")
+            .slice(0, 16);
+          doc.save(`OptiCode_QA_Reporte_${ts}.pdf`);
+          log("✅ PDF generado y descargado exitosamente", "success");
+        } catch (e) {
+          log(`❌ Error generando PDF: ${e.message}`, "error");
+          console.error(e);
+        } finally {
+          document.getElementById("spinnerOverlay").classList.remove("active");
+        }
+      }
+    </script>
+  </body>
+</html>
