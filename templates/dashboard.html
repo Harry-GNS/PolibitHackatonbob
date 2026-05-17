@@ -1,1366 +1,2064 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OptiCode QA — Panel del Auditor</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        :root {
-            /* Dark Analytics Dashboard Theme - Similar to reference */
-            --bg-primary: #1E2530;
-            --bg-secondary: #252D3A;
-            --bg-tertiary: #2A3441;
-            --bg-elevated: #2F3947;
-            --bg-overlay: #353E4D;
-            
-            --text-primary: #E8EDF3;
-            --text-secondary: #9BA5B4;
-            --text-muted: #6B7785;
-            
-            --accent-primary: #4FC3DC;
-            --accent-hover: #6DD5EC;
-            --accent-active: #3AAFCA;
-            
-            --accent-secondary: #F5A962;
-            --accent-secondary-hover: #FFB876;
-            
-            --success: #4FC3DC;
-            --success-muted: #3AAFCA;
-            --warning: #F5A962;
-            --warning-muted: #E09850;
-            --error: #E85D75;
-            --error-muted: #D64A63;
-            
-            --border-default: #3A4454;
-            --border-muted: #2F3947;
-            --border-accent: #4FC3DC;
-            
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-            --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
-            --shadow-glow: 0 0 20px rgba(79,195,220,0.25);
+      :root {
+        --bg-primary: #1a2332;
+        --bg-secondary: #222c3c;
+        --bg-tertiary: #273446;
+        --bg-elevated: #243142;
+        --bg-overlay: #2a374a;
+
+        --text-primary: #edf4fb;
+        --text-secondary: #a9b7c8;
+        --text-muted: #7f8ea2;
+
+        --accent-primary: #4ea3b8;
+        --accent-hover: #6ab8c9;
+        --accent-active: #3e8b9d;
+
+        --accent-secondary: #e08a3c;
+        --accent-secondary-hover: #eea45c;
+
+        --success: #4ea3b8;
+        --success-muted: rgba(78, 163, 184, 0.14);
+        --warning: #f7b844;
+        --warning-muted: rgba(247, 184, 68, 0.16);
+        --error: #f08b7e;
+        --error-muted: rgba(240, 139, 126, 0.14);
+
+        --border-default: #354354;
+        --border-muted: #2d3a4c;
+        --border-accent: #4ea3b8;
+
+        --shadow-sm: 0 8px 20px rgba(4, 10, 18, 0.28);
+        --shadow-md: 0 18px 40px rgba(4, 10, 18, 0.36);
+        --shadow-lg: 0 30px 70px rgba(4, 10, 18, 0.48);
+        --shadow-glow:
+          0 0 0 1px rgba(78, 163, 184, 0.14),
+          0 16px 36px rgba(78, 163, 184, 0.18);
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        font-family: "Inter", system-ui, sans-serif;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(78, 163, 184, 0.16),
+            transparent 28%
+          ),
+          radial-gradient(
+            circle at top right,
+            rgba(224, 138, 60, 0.13),
+            transparent 24%
+          ),
+          linear-gradient(180deg, #1a2332 0%, #111827 100%);
+        color: var(--text-primary);
+        overscroll-behavior: none;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow-y: auto;
+        overscroll-behavior: none;
+        padding: 0.45rem;
+        align-items: center;
+      }
+
+      .app-header {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        padding: 0.9rem 0.5rem 0.45rem;
+        box-shadow: none;
+        display: grid;
+        grid-template-columns: minmax(120px, 1fr) minmax(0, 2fr) minmax(
+            120px,
+            1fr
+          );
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        z-index: 100;
+        backdrop-filter: blur(8px);
+        width: min(1440px, 100%);
+      }
+
+      .header-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+      }
+
+      .header-logo {
+        width: 3.1rem;
+        height: 3.1rem;
+        object-fit: contain;
+        display: block;
+      }
+
+      .app-header::before {
+        content: "";
+        position: absolute;
+        left: 0.5rem;
+        right: 0.5rem;
+        bottom: 0.1rem;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          var(--accent-primary) 50%,
+          transparent 100%
+        );
+        opacity: 0.38;
+      }
+
+      .header-kicker {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--text-secondary);
+        font-weight: 700;
+      }
+
+      .header-title {
+        font-size: clamp(2.4rem, 4vw, 4.5rem);
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        color: var(--text-primary);
+        line-height: 0.95;
+      }
+
+      .header-copy {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.1rem;
+      }
+
+      .header-subtitle {
+        margin-top: 0.35rem;
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+        line-height: 1.45;
+        max-width: 58ch;
+      }
+
+      .header-meta {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 0.45rem 0.85rem;
+        background: transparent;
+        border: 1px solid var(--border-muted);
+        border-radius: 999px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        box-shadow: none;
+        transition: all 0.3s ease;
+      }
+
+      .status-badge.running {
+        background: var(--accent-primary);
+        color: #08111a;
+        border-color: var(--accent-primary);
+        box-shadow: var(--shadow-glow);
+        animation: pulse 1.5s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
         }
-
-        html, body {
-            height: 100%;
-            font-family: "JetBrains Mono", monospace;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+        50% {
+          opacity: 0.85;
+          transform: scale(1.02);
         }
+      }
 
-        body { display: flex; flex-direction: column; overflow: hidden; }
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        flex: 1;
+        min-height: 0;
+        overflow: visible;
+        padding-top: 0.35rem;
+        width: min(1440px, 100%);
+      }
 
-        header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-default);
-            padding: 1.2rem 2rem;
-            box-shadow: var(--shadow-md);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            position: relative;
-            z-index: 100;
+      .control-rail {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        padding: 0.6rem 0.5rem 0.75rem;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      .control-rail > div {
+        min-width: 0;
+      }
+
+      .control-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .control-stack .sidebar-input,
+      .control-stack .sidebar-button {
+        width: 100%;
+      }
+
+      .sidebar-section-title {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        letter-spacing: 0.14em;
+        margin-bottom: 0.55rem;
+        font-weight: 700;
+      }
+
+      .sidebar-input {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid var(--border-default);
+        border-radius: 12px;
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 0.82rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .sidebar-input:hover {
+        border-color: var(--border-accent);
+        background: var(--bg-overlay);
+      }
+
+      .sidebar-input:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(78, 163, 184, 0.22);
+      }
+
+      .sidebar-button {
+        width: 100%;
+        padding: 0.65rem 0.8rem;
+        margin-bottom: 0.5rem;
+        border: none;
+        border-radius: 12px;
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(
+          135deg,
+          var(--accent-primary) 0%,
+          var(--accent-active) 100%
+        );
+        color: #071017;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sidebar-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.08),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .sidebar-button:hover:not(:disabled)::before {
+        left: 100%;
+      }
+
+      .sidebar-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-glow);
+      }
+
+      .sidebar-button:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .sidebar-button:disabled {
+        background: var(--bg-overlay);
+        color: var(--text-muted);
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      .sidebar-button.btn-pdf {
+        background: linear-gradient(
+          135deg,
+          var(--accent-secondary) 0%,
+          var(--warning) 100%
+        );
+      }
+
+      .sidebar-button.btn-pdf:hover:not(:disabled) {
+        box-shadow: 0 0 20px rgba(245, 169, 98, 0.4);
+      }
+
+      .status-block {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .status-pill {
+        border: 1px solid var(--border-muted);
+        border-radius: 14px;
+        background: rgba(34, 44, 60, 0.45);
+        padding: 0.75rem 0.9rem;
+        text-align: center;
+        box-shadow: none;
+      }
+
+      /* CONTENT */
+      .content {
+        padding: 1.15rem;
+        overflow: visible;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+
+      .content-section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 1rem;
+        font-weight: 800;
+        color: var(--text-secondary);
+        padding-bottom: 0.45rem;
+        border-bottom: 1px solid var(--border-muted);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
+        gap: 1rem;
+        align-items: stretch;
+      }
+
+      .workspace-header {
+        display: none;
+      }
+
+      .analysis-bento {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .analysis-bento .chart-wide {
+        grid-column: span 8;
+      }
+
+      .analysis-bento .chart-narrow {
+        grid-column: span 4;
+      }
+
+      .analysis-bento .table-wide {
+        grid-column: 1 / -1;
+      }
+
+      .summary-strip {
+        border: 0;
+        background: transparent;
+      }
+
+      .summary-strip .section-title {
+        margin-bottom: 0.9rem;
+      }
+
+      .card {
+        background: rgba(34, 44, 60, 0.32);
+        border: 1px solid var(--border-muted);
+        border-radius: 14px;
+        padding: 1.2rem;
+        box-shadow: none;
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        border-color: rgba(78, 163, 184, 0.28);
+        box-shadow: none;
+        transform: none;
+      }
+
+      .card-title {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 0.8rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+      }
+
+      .chart-container {
+        position: relative;
+        height: 240px;
+      }
+
+      .metrics-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.83rem;
+        background: transparent;
+        border-radius: 0;
+        overflow: hidden;
+        box-shadow: none;
+      }
+      .metrics-table thead {
+        background: rgba(34, 44, 60, 0.8);
+        border-bottom: 1px solid var(--border-accent);
+      }
+      .metrics-table th {
+        padding: 0.65rem 0.8rem;
+        text-align: left;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+        color: var(--accent-primary);
+      }
+      .metrics-table tbody tr:nth-child(odd) {
+        background: var(--bg-tertiary);
+      }
+      .metrics-table tbody tr {
+        border-bottom: 1px solid var(--border-muted);
+        transition: background 0.2s ease;
+      }
+      .metrics-table tbody tr:hover {
+        background: var(--bg-overlay);
+      }
+      .metrics-table td {
+        padding: 0.65rem 0.8rem;
+        color: var(--text-primary);
+      }
+
+      .value-good {
+        color: var(--success);
+        font-weight: 600;
+      }
+      .value-warning {
+        color: var(--warning);
+        font-weight: 600;
+      }
+      .value-error {
+        color: var(--error);
+        font-weight: 600;
+      }
+
+      .activity-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.7rem 0.9rem;
+        border-radius: 999px;
+        border: 1px solid var(--border-default);
+        background: rgba(34, 44, 60, 0.55);
+        color: var(--text-primary);
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: none;
+      }
+
+      .activity-button:hover {
+        border-color: var(--border-accent);
+      }
+
+      .activity-drawer {
+        position: fixed;
+        top: 0.7rem;
+        right: 0.7rem;
+        bottom: 0.7rem;
+        width: min(430px, calc(100vw - 1.4rem));
+        background: rgba(34, 44, 60, 0.96);
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: blur(6px);
+        transform: translateX(calc(100% + 1rem));
+        transition: transform 0.28s ease;
+        z-index: 1200;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .activity-drawer.open {
+        transform: translateX(0);
+      }
+
+      .activity-drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(18, 24, 22, 0.18);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 1100;
+      }
+
+      .activity-drawer-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-muted);
+      }
+
+      .drawer-title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+
+      .drawer-title strong {
+        font-size: 0.92rem;
+      }
+
+      .drawer-title span {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+      }
+
+      .drawer-close {
+        border: 1px solid var(--border-default);
+        background: var(--bg-secondary);
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+
+      .drawer-body {
+        padding: 1rem;
+        overflow: auto;
+        overscroll-behavior: contain;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .drawer-section {
+        border: 1px solid var(--border-default);
+        border-radius: 18px;
+        background: var(--bg-secondary);
+        overflow: hidden;
+      }
+
+      .drawer-section summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 0.9rem 1rem;
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .drawer-section summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .drawer-section summary::after {
+        content: "+";
+        color: var(--text-secondary);
+      }
+
+      .drawer-section[open] summary::after {
+        content: "−";
+      }
+
+      .drawer-section .alerts-container,
+      .drawer-section .log-console {
+        max-height: none;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+        background: transparent;
+        padding-top: 0;
+      }
+
+      .drawer-section .log-console {
+        min-height: 18rem;
+      }
+
+      .log-console {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-default);
+        border-radius: 16px;
+        padding: 0.8rem;
+        font-size: 0.78rem;
+        color: var(--text-primary);
+        flex: 1;
+        min-height: 0;
+        max-height: 18rem;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        line-height: 1.5;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      .log-console::-webkit-scrollbar {
+        width: 6px;
+      }
+      .log-console::-webkit-scrollbar-track {
+        background: var(--bg-primary);
+      }
+      .log-console::-webkit-scrollbar-thumb {
+        background: var(--border-default);
+        border-radius: 3px;
+      }
+
+      .log-line {
+        margin: 2px 0;
+      }
+      .log-success {
+        color: var(--success);
+      }
+      .log-error {
+        color: var(--error);
+      }
+      .log-warning {
+        color: var(--warning);
+      }
+      .log-info {
+        color: var(--accent-hover);
+      }
+      .log-timestamp {
+        color: var(--text-muted);
+      }
+
+      /* ALERTS */
+      .alerts-container {
+        max-height: 12rem;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+
+      .alerts-container::-webkit-scrollbar {
+        width: 6px;
+      }
+      .alerts-container::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .alerts-container::-webkit-scrollbar-thumb {
+        background: var(--border-default);
+        border-radius: 3px;
+      }
+
+      .alert {
+        padding: 0.7rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid var(--border-muted);
+        border-radius: 12px;
+        background: rgba(34, 44, 60, 0.35);
+        font-size: 0.8rem;
+        display: flex;
+        gap: 0.6rem;
+        box-shadow: none;
+        transition: all 0.3s ease;
+      }
+
+      .alert:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      .alert-icon {
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+      .alert-content {
+        flex: 1;
+      }
+      .alert-title {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        margin-bottom: 0.2rem;
+      }
+      .alert-message {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+      }
+      .alert.info {
+        border-color: rgba(78, 163, 184, 0.35);
+      }
+      .alert.info .alert-title {
+        color: var(--accent-primary);
+      }
+      .alert.warning {
+        border-color: rgba(247, 184, 68, 0.35);
+      }
+      .alert.warning .alert-title {
+        color: var(--warning);
+      }
+      .alert.error {
+        border-color: rgba(240, 139, 126, 0.35);
+      }
+      .alert.error .alert-title {
+        color: var(--error);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 1.2rem;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        background: var(--bg-secondary);
+        border-radius: 14px;
+        border: 1px dashed var(--border-default);
+      }
+
+      /* Resumen Análisis */
+      .resumen-titulo {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .resumen-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .resumen-item {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-default);
+        padding: 0.8rem;
+        border-radius: 14px;
+        font-size: 0.8rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .resumen-item:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .resumen-item.cuellos-botella {
+        border-color: rgba(240, 139, 126, 0.35);
+        background: linear-gradient(
+          180deg,
+          var(--bg-elevated),
+          var(--error-muted)
+        );
+      }
+
+      .resumen-item.recomendacion {
+        border-color: rgba(78, 163, 184, 0.35);
+        background: linear-gradient(
+          180deg,
+          var(--bg-elevated),
+          var(--success-muted)
+        );
+      }
+
+      .resumen-item-titulo {
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-bottom: 0.4rem;
+      }
+
+      .resumen-item-contenido {
+        font-size: 0.78rem;
+        color: var(--text-primary);
+        line-height: 1.4;
+      }
+
+      /* Spinner overlay for PDF */
+      .spinner-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, 0.88);
+        backdrop-filter: blur(10px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 1rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+      }
+      .spinner-overlay.active {
+        display: flex;
+      }
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 5px solid var(--border-default);
+        border-top-color: var(--accent-primary);
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+        box-shadow: var(--shadow-glow);
+      }
+
+      .toast-stack {
+        position: fixed;
+        right: 1rem;
+        top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        z-index: 10000;
+        pointer-events: none;
+      }
+
+      .toast {
+        min-width: 260px;
+        max-width: 360px;
+        padding: 0.8rem 0.95rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-default);
+        background: rgba(34, 44, 60, 0.96);
+        box-shadow: none;
+        color: var(--text-primary);
+        font-size: 0.82rem;
+        transform: translateY(-6px);
+        opacity: 0;
+        animation: toast-in 0.25s ease-out forwards;
+      }
+
+      .toast.success {
+        border-color: rgba(78, 163, 184, 0.3);
+      }
+
+      .toast.error {
+        border-color: rgba(240, 139, 126, 0.3);
+      }
+
+      @keyframes toast-in {
+        to {
+          transform: translateY(0);
+          opacity: 1;
         }
-
-        header::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg,
-                transparent 0%,
-                var(--accent-primary) 50%,
-                transparent 100%);
-            opacity: 0.5;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
         }
+      }
 
-        h1 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            flex: 1;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+      @media (max-width: 1200px) {
+        body {
+          padding: 0.7rem;
         }
-
-        .status-badge {
-            display: inline-block;
-            padding: 0.4rem 0.8rem;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
+        .control-rail {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
+      }
 
-        .status-badge.running {
-            background: var(--accent-primary);
-            color: var(--bg-primary);
-            border-color: var(--accent-hover);
-            box-shadow: var(--shadow-glow);
-            animation: pulse 1.5s infinite;
+      @media (max-width: 900px) {
+        body {
+          overflow-y: auto;
         }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.85; transform: scale(1.02); }
+        .app-header {
+          grid-template-columns: 1fr;
+          text-align: center;
         }
-
-        main {
-            display: grid;
-            grid-template-columns: 300px 1fr 300px;
-            flex: 1;
-            overflow: hidden;
+        .header-meta {
+          justify-content: center;
         }
-
-        /* SIDEBAR */
-        aside {
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-default);
-            padding: 1.5rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1.8rem;
-            box-shadow: var(--shadow-md);
+        .header-brand {
+          justify-content: center;
         }
-
-        aside::-webkit-scrollbar { width: 8px; }
-        aside::-webkit-scrollbar-track { background: var(--bg-secondary); }
-        aside::-webkit-scrollbar-thumb {
-            background: var(--border-default);
-            border-radius: 4px;
+        .content,
+        .control-rail {
+          border-radius: 18px;
         }
-        aside::-webkit-scrollbar-thumb:hover { background: var(--border-accent); }
-
-        .sidebar-section-title {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: var(--accent-primary);
-            letter-spacing: 1px;
-            margin-bottom: 0.7rem;
-            font-weight: 700;
-            text-shadow: 0 0 10px rgba(79,195,220,0.3);
-        }
-
-        .sidebar-input {
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            font-family: "JetBrains Mono", monospace;
-            font-size: 0.82rem;
-            background: var(--bg-elevated);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .sidebar-input:hover {
-            border-color: var(--border-accent);
-            background: var(--bg-overlay);
-        }
-
-        .sidebar-input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(79,195,220,0.2);
-        }
-
-        /* Code preview box */
-        .code-preview {
-            margin-top: 0.6rem;
-            background: var(--bg-primary);
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            padding: 0.7rem;
-            font-size: 0.72rem;
-            color: var(--accent-hover);
-            line-height: 1.5;
-            max-height: 140px;
-            overflow-y: auto;
-            white-space: pre;
-            display: none;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
-        }
-
-        .code-preview.visible { display: block; }
-
-        .code-preview::-webkit-scrollbar { width: 6px; }
-        .code-preview::-webkit-scrollbar-track { background: var(--bg-primary); }
-        .code-preview::-webkit-scrollbar-thumb {
-            background: var(--border-default);
-            border-radius: 3px;
-        }
-
-        .sidebar-button {
-            width: 100%;
-            padding: 0.65rem 0.8rem;
-            margin-bottom: 0.5rem;
-            border: none;
-            border-radius: 6px;
-            font-family: "JetBrains Mono", monospace;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-active) 100%);
-            color: var(--bg-primary);
-            box-shadow: var(--shadow-sm);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sidebar-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .sidebar-button:hover:not(:disabled)::before {
-            left: 100%;
-        }
-
-        .sidebar-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .sidebar-button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        .sidebar-button:disabled {
-            background: var(--bg-elevated);
-            color: var(--text-muted);
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        .sidebar-button.btn-pdf {
-            background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--warning-muted) 100%);
-        }
-
-        .sidebar-button.btn-pdf:hover:not(:disabled) {
-            box-shadow: 0 0 20px rgba(245,169,98,0.4);
-        }
-
-        /* CONTENT */
         .content {
-            padding: 1.5rem;
-            overflow-y: auto;
-            background: var(--bg-primary);
+          min-height: auto;
         }
-
-        .content::-webkit-scrollbar { width: 10px; }
-        .content::-webkit-scrollbar-track { background: var(--bg-primary); }
-        .content::-webkit-scrollbar-thumb {
-            background: var(--border-default);
-            border-radius: 5px;
+        .analysis-bento,
+        .grid-2 {
+          grid-template-columns: 1fr;
         }
-        .content::-webkit-scrollbar-thumb:hover { background: var(--border-accent); }
-
-        .content-section { margin-bottom: 2rem; }
-
-        .section-title {
-            font-size: 0.92rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 1rem;
-            font-weight: 700;
-            border-bottom: 2px solid var(--accent-primary);
-            padding-bottom: 0.5rem;
-            color: var(--text-primary);
-            text-shadow: 0 0 10px rgba(79,195,220,0.2);
+        .analysis-bento .chart-wide,
+        .analysis-bento .chart-narrow,
+        .analysis-bento .table-wide {
+          grid-column: auto;
         }
-
-        .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.5rem; }
-
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-default);
-            border-radius: 8px;
-            padding: 1.2rem;
-            box-shadow: var(--shadow-md);
-            transition: all 0.3s ease;
+        .activity-drawer {
+          top: auto;
+          bottom: 0.6rem;
+          right: 0.6rem;
+          left: 0.6rem;
+          width: auto;
+          height: min(80vh, 42rem);
         }
-
-        .card:hover {
-            border-color: var(--border-accent);
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
+        .activity-button {
+          width: 100%;
+          justify-content: center;
         }
-
-        .card-title {
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 0.8rem;
-            font-weight: 600;
-            color: var(--accent-primary);
+        .control-rail {
+          grid-template-columns: 1fr;
         }
-
-        .chart-container { position: relative; height: 240px; }
-
-        .metrics-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.83rem;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: var(--shadow-md);
-        }
-        .metrics-table thead {
-            background: var(--bg-elevated);
-            border-bottom: 2px solid var(--border-accent);
-        }
-        .metrics-table th {
-            padding: 0.65rem 0.8rem;
-            text-align: left;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-            color: var(--accent-primary);
-        }
-        .metrics-table tbody tr:nth-child(odd) { background: var(--bg-tertiary); }
-        .metrics-table tbody tr {
-            border-bottom: 1px solid var(--border-muted);
-            transition: background 0.2s ease;
-        }
-        .metrics-table tbody tr:hover {
-            background: var(--bg-overlay);
-        }
-        .metrics-table td { padding: 0.65rem 0.8rem; color: var(--text-primary); }
-
-        .value-good   { color: var(--success); font-weight: 600; }
-        .value-warning{ color: var(--warning);  font-weight: 600; }
-        .value-error  { color: var(--error);     font-weight: 600; }
-
-        /* RIGHT PANEL */
-        .log-panel {
-            background: var(--bg-secondary);
-            border-left: 1px solid var(--border-default);
-            padding: 1.2rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            box-shadow: var(--shadow-md);
-        }
-
-        .log-panel::-webkit-scrollbar { width: 8px; }
-        .log-panel::-webkit-scrollbar-track { background: var(--bg-secondary); }
-        .log-panel::-webkit-scrollbar-thumb {
-            background: var(--border-default);
-            border-radius: 4px;
-        }
-
-        .log-console {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            padding: 0.8rem;
-            font-size: 0.78rem;
-            color: var(--text-primary);
-            flex: 1;
-            min-height: 180px;
-            overflow-y: auto;
-            line-height: 1.5;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
-        }
-
-        .log-console::-webkit-scrollbar { width: 6px; }
-        .log-console::-webkit-scrollbar-track { background: var(--bg-primary); }
-        .log-console::-webkit-scrollbar-thumb {
-            background: var(--border-default);
-            border-radius: 3px;
-        }
-
-        .log-line { margin: 2px 0; }
-        .log-success { color: var(--success); }
-        .log-error   { color: var(--error); }
-        .log-warning { color: var(--warning); }
-        .log-info    { color: var(--accent-hover); }
-        .log-timestamp { color: var(--text-muted); }
-
-        /* ALERTS */
-        .alerts-container { max-height: 280px; overflow-y: auto; }
-
-        .alerts-container::-webkit-scrollbar { width: 6px; }
-        .alerts-container::-webkit-scrollbar-track { background: transparent; }
-        .alerts-container::-webkit-scrollbar-thumb {
-            background: var(--border-default);
-            border-radius: 3px;
-        }
-
-        .alert {
-            padding: 0.7rem;
-            margin-bottom: 0.5rem;
-            border-left: 4px solid;
-            border-radius: 6px;
-            background: var(--bg-elevated);
-            font-size: 0.8rem;
-            display: flex;
-            gap: 0.6rem;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
-        }
-
-        .alert:hover {
-            transform: translateX(4px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .alert-icon { font-size: 1rem; flex-shrink: 0; }
-        .alert-content { flex: 1; }
-        .alert-title {
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.72rem;
-            margin-bottom: 0.2rem;
-        }
-        .alert-message { font-size: 0.78rem; color: var(--text-secondary); }
-        .alert.info    { border-color: var(--accent-primary); }
-        .alert.info .alert-title { color: var(--accent-primary); }
-        .alert.warning { border-color: var(--warning); }
-        .alert.warning .alert-title { color: var(--warning); }
-        .alert.error   { border-color: var(--error); }
-        .alert.error .alert-title { color: var(--error); }
-
-        .empty-state {
-            text-align: center;
-            padding: 1.2rem;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            background: var(--bg-elevated);
-            border-radius: 6px;
-            border: 1px dashed var(--border-default);
-        }
-
-        /* Resumen Análisis */
-        .resumen-titulo {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .resumen-items {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .resumen-item {
-            background: var(--bg-elevated);
-            border-left: 3px solid var(--accent-primary);
-            padding: 0.8rem;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.3s ease;
-        }
-
-        .resumen-item:hover {
-            transform: translateX(4px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .resumen-item.cuellos-botella {
-            border-left-color: var(--error);
-        }
-
-        .resumen-item.recomendacion {
-            border-left-color: var(--success);
-        }
-
-        .resumen-item-titulo {
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            margin-bottom: 0.4rem;
-        }
-
-        .resumen-item-contenido {
-            font-size: 0.78rem;
-            color: var(--text-primary);
-            line-height: 1.4;
-        }
-
-        /* Spinner overlay for PDF */
-        .spinner-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(13,17,23,0.95);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 1rem;
-            color: var(--text-primary);
-            font-size: 1rem;
-        }
-        .spinner-overlay.active { display: flex; }
-        .spinner {
-            width: 48px; height: 48px;
-            border: 5px solid var(--border-default);
-            border-top-color: var(--accent-primary);
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-            box-shadow: var(--shadow-glow);
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        @media (max-width: 1200px) {
-            main { grid-template-columns: 280px 1fr; }
-            .log-panel { display: none; }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div class="toast-stack" id="toastStack"></div>
+    <div class="spinner-overlay" id="spinnerOverlay">
+      <div class="spinner"></div>
+      <div>Generando PDF…</div>
+    </div>
 
-<div class="spinner-overlay" id="spinnerOverlay">
-    <div class="spinner"></div>
-    <div>Generando PDF…</div>
-</div>
+    <header class="app-header">
+      <div class="header-brand">
+        <img class="header-logo" src="/LOGOQA.png" alt="OptiCode QA" />
+        <div class="header-kicker">Panel del auditor</div>
+      </div>
+      <div class="header-copy">
+        <div class="header-title">OptiCode QA</div>
+        <div class="header-subtitle">
+          Teoría y práctica en una sola superficie.
+        </div>
+      </div>
+      <div class="header-meta">
+        <button
+          class="activity-button"
+          type="button"
+          onclick="toggleActivityDrawer()"
+        >
+          Actividad
+        </button>
+        <div class="status-badge" id="statusBadge">Listo</div>
+      </div>
+    </header>
 
-<header>
-    <h1>🔍 OptiCode QA — Panel del Auditor</h1>
-    <div class="status-badge" id="statusBadge">Listo</div>
-</header>
-
-<main>
-    <!-- SIDEBAR -->
-    <aside>
-        <div>
-            <div class="sidebar-section-title">📊 Análisis Bob IDE</div>
-            <small style="color:var(--text-secondary);font-size:0.7rem;display:block;margin-bottom:0.5rem;">
-                📁 Carpeta: output/informesbob/
-            </small>
-            <select class="sidebar-input" id="bobAnalysisSelect" onchange="cargarContenidoBob()">
-                <option value="">Seleccionar análisis…</option>
-            </select>
+    <main>
+      <section class="control-rail" aria-label="Controles de auditoría">
+        <div class="control-stack">
+          <div class="sidebar-section-title">📊 Análisis Bob IDE</div>
+          <small
+            style="
+              color: var(--text-secondary);
+              font-size: 0.7rem;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+          >
+            📁 Carpeta: output/informesbob/
+          </small>
+          <select
+            class="sidebar-input"
+            id="bobAnalysisSelect"
+            onchange="cargarContenidoBob()"
+          >
+            <option value="">Seleccionar análisis…</option>
+          </select>
         </div>
 
-        <div>
-            <div class="sidebar-section-title">💻 Código a Analizar</div>
-            <select class="sidebar-input" id="codigoSelect" onchange="previsualizarCodigo()">
-                <option value="">Seleccionar archivo…</option>
-            </select>
-            <div class="code-preview" id="codePreview"></div>
+        <div class="control-stack">
+          <div class="sidebar-section-title">💻 Código a Analizar</div>
+          <select
+            class="sidebar-input"
+            id="codigoSelect"
+            onchange="previsualizarCodigo()"
+          >
+            <option value="">Seleccionar archivo…</option>
+          </select>
         </div>
 
-        <div>
-            <div class="sidebar-section-title">⚙️ Acciones</div>
-            <button class="sidebar-button" id="ejecutarBtn" onclick="ejecutarAuditoria()">
-                ⚡ EJECUTAR
-            </button>
-            <button class="sidebar-button btn-pdf" id="reporteBtn" onclick="descargarPDF()" disabled>
-                📥 Descargar PDF
-            </button>
+        <div class="control-stack">
+          <div class="sidebar-section-title">⚙️ Acciones</div>
+          <button
+            class="sidebar-button"
+            id="ejecutarBtn"
+            onclick="ejecutarAuditoria()"
+          >
+            ⚡ EJECUTAR
+          </button>
+          <button
+            class="sidebar-button btn-pdf"
+            id="reporteBtn"
+            onclick="descargarPDF()"
+            disabled
+          >
+            📥 Descargar PDF
+          </button>
         </div>
 
-        <div>
-            <div class="sidebar-section-title">ℹ️ Estado</div>
-            <div class="status-badge" style="display:block;text-align:center;width:100%;">
-                <div id="alertasCount" style="font-size:1.3rem;font-weight:700;">0</div>
-                <small>Alertas detectadas</small>
+        <div class="control-stack status-block">
+          <div class="sidebar-section-title">ℹ️ Estado</div>
+          <div class="status-pill">
+            <div id="alertasCount" style="font-size: 1.3rem; font-weight: 700">
+              0
             </div>
+            <small>Alertas detectadas</small>
+          </div>
         </div>
+      </section>
+
+      <!-- CONTENT -->
+      <div class="content">
+        <section class="content-section summary-strip">
+          <h2 class="section-title">Resumen del análisis</h2>
+          <div class="card" id="resumenAnalisisCard" style="display: none">
+            <div id="resumenContenido"></div>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <h2 class="section-title">Análisis de rendimiento</h2>
+          <div class="analysis-bento">
+            <div class="card chart-wide">
+              <div class="card-title">Tiempo de Ejecución (ms)</div>
+              <div class="chart-container">
+                <canvas id="chartTiempo"></canvas>
+              </div>
+            </div>
+            <div class="card chart-narrow">
+              <div class="card-title">Consumo de Memoria (MB)</div>
+              <div class="chart-container">
+                <canvas id="chartMemoria"></canvas>
+              </div>
+            </div>
+            <div class="card table-wide">
+              <h2 class="section-title" style="margin-bottom: 0.9rem">
+                Métricas detalladas
+              </h2>
+              <table class="metrics-table" id="metricsTable">
+                <thead>
+                  <tr>
+                    <th>Tamaño (N)</th>
+                    <th>DFS (ms)</th>
+                    <th>LDFS (ms)</th>
+                    <th>IDFS (ms)</th>
+                    <th>Mem DFS (MB)</th>
+                  </tr>
+                </thead>
+                <tbody id="metricsTableBody">
+                  <tr>
+                    <td colspan="5" class="empty-state">
+                      Sin datos. Ejecuta una auditoría primero.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section summary-strip">
+          <h2 class="section-title">⚠️ Alertas</h2>
+          <div class="card" id="alertasCard">
+            <div id="alertasContainer">
+              <div class="empty-state" style="padding: 0.8rem">
+                ✓ Sin alertas
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT PANEL -->
+    </main>
+
+    <div
+      class="activity-drawer-backdrop"
+      id="activityDrawerBackdrop"
+      onclick="closeActivityDrawer()"
+    ></div>
+    <aside class="activity-drawer" id="activityDrawer" aria-hidden="true">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <strong>Actividad</strong>
+          <span>Registro de ejecución</span>
+        </div>
+        <button
+          class="drawer-close"
+          type="button"
+          onclick="closeActivityDrawer()"
+        >
+          ×
+        </button>
+      </div>
+      <div class="drawer-body">
+        <details class="drawer-section" open>
+          <summary>📋 Log de ejecución</summary>
+          <div class="log-console" id="logConsole">
+            <div class="log-line log-info">
+              <span class="log-timestamp">[00:00:00]</span> Sistema iniciado.
+              Listo para auditar.
+            </div>
+          </div>
+        </details>
+      </div>
     </aside>
 
-    <!-- CONTENT -->
-    <div class="content">
-        <div class="content-section">
-            <h2 class="section-title">� Resumen del Análisis</h2>
-            <div class="card" id="resumenAnalisisCard" style="display: none;">
-                <div id="resumenContenido"></div>
-            </div>
-        </div>
+    <script>
+      // ── Estado global ────────────────────────────────────────────────────────
+      let chartTiempo = null;
+      let chartMemoria = null;
+      let metricsData = {};
+      let alertasActuales = [];
+      let codigoActual = ""; // contenido del archivo seleccionado
+      let bobActual = ""; // nombre del análisis seleccionado
+      let resumenActual = null; // resumen del análisis MD
 
-        <div class="content-section">
-            <h2 class="section-title">�📈 Análisis de Rendimiento</h2>
-            <div class="grid-2">
-                <div class="card">
-                    <div class="card-title">Tiempo de Ejecución (ms)</div>
-                    <div class="chart-container">
-                        <canvas id="chartTiempo"></canvas>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Consumo de Memoria (MB)</div>
-                    <div class="chart-container">
-                        <canvas id="chartMemoria"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="content-section">
-            <h2 class="section-title">📊 Métricas Detalladas</h2>
-            <div class="card">
-                <table class="metrics-table" id="metricsTable">
-                    <thead>
-                        <tr>
-                            <th>Tamaño (N)</th>
-                            <th>DFS (ms)</th>
-                            <th>LDFS (ms)</th>
-                            <th>IDFS (ms)</th>
-                            <th>Mem DFS (MB)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="metricsTableBody">
-                        <tr>
-                            <td colspan="5" class="empty-state">Sin datos. Ejecuta una auditoría primero.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- RIGHT PANEL -->
-    <div class="log-panel">
-        <div class="section-title" style="margin:0;">📋 Log de Ejecución</div>
-        <div class="log-console" id="logConsole">
-            <div class="log-line log-info">
-                <span class="log-timestamp">[00:00:00]</span> Sistema iniciado. Listo para auditar.
-            </div>
-        </div>
-
-        <div class="section-title">⚠️ Alertas</div>
-        <div class="alerts-container" id="alertasContainer">
-            <div class="empty-state" style="padding:0.8rem;">✓ Sin alertas</div>
-        </div>
-    </div>
-</main>
-
-<script>
-    // ── Estado global ────────────────────────────────────────────────────────
-    let chartTiempo   = null;
-    let chartMemoria  = null;
-    let metricsData   = {};
-    let alertasActuales = [];
-    let codigoActual  = '';   // contenido del archivo seleccionado
-    let bobActual     = '';   // nombre del análisis seleccionado
-    let resumenActual = null; // resumen del análisis MD
-
-    // ── Init ─────────────────────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', () => {
+      // ── Init ─────────────────────────────────────────────────────────────────
+      document.addEventListener("DOMContentLoaded", () => {
         cargarAnalisisBob();
         cargarCodigos();
-        log('🚀 Sistema OptiCode QA iniciado', 'success');
-    });
+        log("🚀 Sistema OptiCode QA iniciado", "success");
+      });
 
-    // ── Log ───────────────────────────────────────────────────────────────────
-    function log(msg, tipo = 'info') {
-        const consola = document.getElementById('logConsole');
-        const ts = new Date().toLocaleTimeString('es-ES');
-        consola.insertAdjacentHTML('beforeend',
-            `<div class="log-line log-${tipo}"><span class="log-timestamp">[${ts}]</span> ${msg}</div>`
+      // ── Log ───────────────────────────────────────────────────────────────────
+      function log(msg, tipo = "info") {
+        const consola = document.getElementById("logConsole");
+        const ts = new Date().toLocaleTimeString("es-ES");
+        consola.insertAdjacentHTML(
+          "beforeend",
+          `<div class="log-line log-${tipo}"><span class="log-timestamp">[${ts}]</span> ${msg}</div>`,
         );
         consola.scrollTop = consola.scrollHeight;
-    }
+      }
 
-    // ── Cargar análisis Bob ──────────────────────────────────────────────────
-    async function cargarAnalisisBob() {
+      function showToast(message, type = "success") {
+        const stack = document.getElementById("toastStack");
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        stack.appendChild(toast);
+
+        window.setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transform = "translateY(-6px)";
+        }, 3000);
+
+        window.setTimeout(() => {
+          toast.remove();
+        }, 3400);
+      }
+
+      function toggleActivityDrawer(forceOpen = null) {
+        const drawer = document.getElementById("activityDrawer");
+        const backdrop = document.getElementById("activityDrawerBackdrop");
+        const shouldOpen =
+          forceOpen === null ? !drawer.classList.contains("open") : forceOpen;
+
+        drawer.classList.toggle("open", shouldOpen);
+        backdrop.classList.toggle("open", shouldOpen);
+        drawer.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
+      }
+
+      function closeActivityDrawer() {
+        toggleActivityDrawer(false);
+      }
+
+      // ── Cargar análisis Bob ──────────────────────────────────────────────────
+      async function cargarAnalisisBob() {
         try {
-            const res  = await fetch('/api/bob-sessions');
-            const data = await res.json();
-            const sel  = document.getElementById('bobAnalysisSelect');
-            sel.innerHTML = '<option value="">Seleccionar análisis…</option>';
+          const res = await fetch("/api/bob-sessions");
+          const data = await res.json();
+          const sel = document.getElementById("bobAnalysisSelect");
+          sel.innerHTML = '<option value="">Seleccionar análisis…</option>';
 
-            if (data.success && data.archivos && data.archivos.length > 0) {
-                data.archivos.forEach(a => {
-                    const opt = document.createElement('option');
-                    opt.value = a.nombre;
-                    opt.textContent = a.nombre.replace('.md', '');
-                    sel.appendChild(opt);
-                });
-                sel.selectedIndex = 1;
-                bobActual = sel.value;
-                log(`✅ ${data.total} análisis cargados desde output/informesbob/`, 'success');
-            } else {
-                log('ℹ️ Sin análisis en output/informesbob/', 'warning');
-            }
+          if (data.success && data.archivos && data.archivos.length > 0) {
+            data.archivos.forEach((a) => {
+              const opt = document.createElement("option");
+              opt.value = a.nombre;
+              opt.textContent = a.nombre.replace(".md", "");
+              sel.appendChild(opt);
+            });
+            sel.selectedIndex = 1;
+            bobActual = sel.value;
+            log(
+              `✅ ${data.total} análisis cargados desde output/informesbob/`,
+              "success",
+            );
+          } else {
+            log("ℹ️ Sin análisis en output/informesbob/", "warning");
+          }
         } catch (e) {
-            log(`❌ Error cargando análisis Bob: ${e.message}`, 'error');
+          log(`❌ Error cargando análisis Bob: ${e.message}`, "error");
         }
-    }
+      }
 
-    function cargarContenidoBob() {
-        bobActual = document.getElementById('bobAnalysisSelect').value;
+      function cargarContenidoBob() {
+        bobActual = document.getElementById("bobAnalysisSelect").value;
         if (!bobActual) return;
-        log(`📄 Análisis seleccionado: ${bobActual}`, 'info');
-    }
+        log(`📄 Análisis seleccionado: ${bobActual}`, "info");
+      }
 
-    // ── Cargar códigos (un archivo a la vez con preview) ─────────────────────
-    async function cargarCodigos() {
+      // ── Cargar códigos ───────────────────────────────────────────────────────
+      async function cargarCodigos() {
         try {
-            const res  = await fetch('/api/codigos');
-            const data = await res.json();
-            const sel  = document.getElementById('codigoSelect');
-            sel.innerHTML = '<option value="">Seleccionar archivo…</option>';
+          const res = await fetch("/api/codigos");
+          const data = await res.json();
+          const sel = document.getElementById("codigoSelect");
+          sel.innerHTML = '<option value="">Seleccionar archivo…</option>';
 
-            if (data.success && data.archivos) {
-                data.archivos.forEach(a => {
-                    const opt = document.createElement('option');
-                    opt.value = a.nombre;
-                    opt.textContent = a.nombre;
-                    // Guardamos el preview en el data attribute
-                    opt.dataset.preview = a.contenido_preview || '';
-                    sel.appendChild(opt);
-                });
-                log(`✅ ${data.total} archivos de código disponibles`, 'success');
-            }
+          if (data.success && data.archivos) {
+            data.archivos.forEach((a) => {
+              const opt = document.createElement("option");
+              opt.value = a.nombre;
+              opt.textContent = a.nombre;
+              // Guardamos el preview en el data attribute
+              opt.dataset.preview = a.contenido_preview || "";
+              sel.appendChild(opt);
+            });
+            log(`✅ ${data.total} archivos de código disponibles`, "success");
+          }
         } catch (e) {
-            log(`❌ Error cargando códigos: ${e.message}`, 'error');
+          log(`❌ Error cargando códigos: ${e.message}`, "error");
         }
-    }
+      }
 
-    async function previsualizarCodigo() {
-        const sel     = document.getElementById('codigoSelect');
-        const nombre  = sel.value;
-        const preview = document.getElementById('codePreview');
+      async function previsualizarCodigo() {
+        const sel = document.getElementById("codigoSelect");
+        const nombre = sel.value;
 
         if (!nombre) {
-            preview.classList.remove('visible');
-            codigoActual = '';
-            return;
+          codigoActual = "";
+          return;
         }
 
         try {
-            const res  = await fetch(`/api/codigos/${nombre}`);
-            const data = await res.json();
-            if (data.success) {
-                codigoActual = data.contenido;
-                // Mostrar primeras 30 líneas en el preview
-                const lineas = data.contenido.split('\n').slice(0, 30).join('\n');
-                preview.textContent = lineas;
-                preview.classList.add('visible');
-                log(`💻 Código cargado: ${nombre} (${data.contenido.split('\n').length} líneas)`, 'success');
-            }
+          const res = await fetch(`/api/codigos/${nombre}`);
+          const data = await res.json();
+          if (data.success) {
+            codigoActual = data.contenido;
+            log(
+              `💻 Código cargado: ${nombre} (${data.contenido.split("\n").length} líneas)`,
+              "success",
+            );
+          }
         } catch (e) {
-            log(`❌ Error cargando código: ${e.message}`, 'error');
+          log(`❌ Error cargando código: ${e.message}`, "error");
         }
-    }
+      }
 
-    // ── Ejecutar benchmarks ──────────────────────────────────────────────────
-    async function ejecutarAuditoria() {
-        const btn   = document.getElementById('ejecutarBtn');
-        const badge = document.getElementById('statusBadge');
+      // ── Ejecutar benchmarks ──────────────────────────────────────────────────
+      async function ejecutarAuditoria() {
+        const btn = document.getElementById("ejecutarBtn");
+        const badge = document.getElementById("statusBadge");
 
         btn.disabled = true;
-        badge.textContent = 'Ejecutando…';
-        badge.className = 'status-badge running';
-        log('⚡ Iniciando benchmarks locales…', 'info');
+        badge.textContent = "Ejecutando…";
+        badge.className = "status-badge running";
+        log("⚡ Iniciando benchmarks locales…", "info");
 
         try {
-            const res  = await fetch('/api/ejecutar-benchmarks', { method: 'POST' });
-            const data = await res.json();
+          const res = await fetch("/api/ejecutar-benchmarks", {
+            method: "POST",
+          });
+          const data = await res.json();
 
-            if (data.success) {
-                metricsData     = data.metricas;
-                alertasActuales = data.alertas || [];
-                resumenActual   = data.resumen_analisis;
+          if (data.success) {
+            metricsData = data.metricas;
+            alertasActuales = data.alertas || [];
+            resumenActual = data.resumen_analisis;
 
-                actualizarGraficos();
-                actualizarTabla();
-                actualizarAlertas();
-                
-                // Mostrar resumen del análisis
-                if (resumenActual) {
-                    mostrarResumenAnalisis(resumenActual);
-                }
+            actualizarGraficos();
+            actualizarTabla();
+            actualizarAlertas();
 
-                log('✅ Benchmarks completados exitosamente', 'success');
-                badge.textContent = 'Auditoría Completada ✓';
-                badge.className   = 'status-badge';
-
-                document.getElementById('reporteBtn').disabled = false;
-            } else {
-                throw new Error(data.error);
+            // Mostrar resumen del análisis
+            if (resumenActual) {
+              mostrarResumenAnalisis(resumenActual);
             }
-        } catch (e) {
-            log(`❌ Error: ${e.message}`, 'error');
-            badge.textContent = 'Error';
-            badge.className   = 'status-badge';
-        } finally {
-            btn.disabled = false;
-        }
-    }
 
-    function mostrarResumenAnalisis(resumen) {
-        const card = document.getElementById('resumenAnalisisCard');
-        const contenido = document.getElementById('resumenContenido');
-        
-        if (!resumen || Object.keys(resumen).length === 0) {
-            card.style.display = 'none';
-            return;
+            log("✅ Benchmarks completados exitosamente", "success");
+            badge.textContent = "Listo";
+            badge.className = "status-badge";
+            showToast("Auditoría completada ✓", "success");
+
+            document.getElementById("reporteBtn").disabled = false;
+          } else {
+            throw new Error(data.error);
+          }
+        } catch (e) {
+          log(`❌ Error: ${e.message}`, "error");
+          badge.textContent = "Error";
+          badge.className = "status-badge";
+          showToast(`Error en auditoría: ${e.message}`, "error");
+        } finally {
+          btn.disabled = false;
         }
-        
-        let html = '';
-        
+      }
+
+      function mostrarResumenAnalisis(resumen) {
+        const card = document.getElementById("resumenAnalisisCard");
+        const contenido = document.getElementById("resumenContenido");
+
+        if (!resumen || Object.keys(resumen).length === 0) {
+          card.style.display = "none";
+          return;
+        }
+
+        let html = "";
+
         // Título
         if (resumen.titulo) {
-            html += `<div class="resumen-titulo">📊 ${resumen.titulo}</div>`;
+          html += `<div class="resumen-titulo">📊 ${resumen.titulo}</div>`;
         }
-        
+
         html += '<div class="resumen-items">';
-        
+
         // Puntos clave
         if (resumen.puntos_clave && resumen.puntos_clave.length > 0) {
-            resumen.puntos_clave.forEach(punto => {
-                html += `
+          resumen.puntos_clave.forEach((punto) => {
+            html += `
                     <div class="resumen-item">
                         <div class="resumen-item-titulo">✅ Punto Clave</div>
                         <div class="resumen-item-contenido">${punto}</div>
                     </div>
                 `;
-            });
+          });
         }
-        
+
         // Cuellos de botella
         if (resumen.cuellos_botella && resumen.cuellos_botella.length > 0) {
-            resumen.cuellos_botella.forEach(cuello => {
-                html += `
+          resumen.cuellos_botella.forEach((cuello) => {
+            html += `
                     <div class="resumen-item cuellos-botella">
                         <div class="resumen-item-titulo">🔴 Cuello de Botella</div>
                         <div class="resumen-item-contenido">${cuello}</div>
                     </div>
                 `;
-            });
+          });
         }
-        
+
         // Recomendaciones
         if (resumen.recomendaciones && resumen.recomendaciones.length > 0) {
-            resumen.recomendaciones.forEach(rec => {
-                html += `
+          resumen.recomendaciones.forEach((rec) => {
+            html += `
                     <div class="resumen-item recomendacion">
                         <div class="resumen-item-titulo">💡 Recomendación</div>
                         <div class="resumen-item-contenido">${rec}</div>
                     </div>
                 `;
-            });
+          });
         }
-        
-        html += '</div>';
-        
+
+        html += "</div>";
+
         // Complejidades encontradas
         if (resumen.metricas && resumen.metricas.complejidades_encontradas) {
-            html += `
+          html += `
                 <div style="background: var(--bg-secondary); padding: 0.8rem; border-radius: 3px; font-size: 0.8rem;">
                     <div class="resumen-item-titulo">📐 Complejidades Encontradas</div>
                     <div style="font-family: 'Courier New', monospace; color: var(--accent-primary); word-break: break-all;">
-                        ${resumen.metricas.complejidades_encontradas.join(' | ')}
+                        ${resumen.metricas.complejidades_encontradas.join(" | ")}
                     </div>
                 </div>
             `;
         }
-        
-        contenido.innerHTML = html;
-        card.style.display = 'block';
-        log(`📋 Resumen del análisis mostrado`, 'success');
-    }
 
-    // ── Gráficos ──────────────────────────────────────────────────────────────
-    function actualizarGraficos() {
-        const sizes  = Object.keys(metricsData).sort((a,b) => parseInt(a)-parseInt(b));
-        const labels = sizes.map(s => `N=${s}`);
+        contenido.innerHTML = html;
+        card.style.display = "block";
+        log(`📋 Resumen del análisis mostrado`, "success");
+      }
+
+      // ── Gráficos ──────────────────────────────────────────────────────────────
+      function actualizarGraficos() {
+        const sizes = Object.keys(metricsData).sort(
+          (a, b) => parseInt(a) - parseInt(b),
+        );
+        const labels = sizes.map((s) => `N=${s}`);
+        const theme = getComputedStyle(document.documentElement);
+        const colors = {
+          dfs: theme.getPropertyValue("--accent-primary").trim(),
+          ldfs: theme.getPropertyValue("--accent-secondary").trim(),
+          idfs: theme.getPropertyValue("--error").trim(),
+          text: theme.getPropertyValue("--text-secondary").trim(),
+          grid: theme.getPropertyValue("--border-muted").trim(),
+          fillDfs: theme.getPropertyValue("--success-muted").trim(),
+          fillLdfs: theme.getPropertyValue("--warning-muted").trim(),
+          fillIdfs: theme.getPropertyValue("--error-muted").trim(),
+        };
 
         function gT(size, algo) {
-            const m = metricsData[size];
-            return (m[algo]?.time_ms_mean !== undefined) ? m[algo].time_ms_mean : (m.time_ms || 0);
+          const m = metricsData[size];
+          return m[algo]?.time_ms_mean !== undefined
+            ? m[algo].time_ms_mean
+            : m.time_ms || 0;
         }
         function gM(size, algo) {
-            const m = metricsData[size];
-            return (m[algo]?.mem_bytes_peak_mean !== undefined)
-                ? m[algo].mem_bytes_peak_mean / (1024*1024)
-                : (m.memory_mb || 0);
+          const m = metricsData[size];
+          return m[algo]?.mem_bytes_peak_mean !== undefined
+            ? m[algo].mem_bytes_peak_mean / (1024 * 1024)
+            : m.memory_mb || 0;
         }
 
-        const ctx1 = document.getElementById('chartTiempo').getContext('2d');
+        const ctx1 = document.getElementById("chartTiempo").getContext("2d");
         if (chartTiempo) chartTiempo.destroy();
         chartTiempo = new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                    { label:'DFS',  data: sizes.map(s=>gT(s,'dfs')),  borderColor:'#4FC3DC', backgroundColor:'rgba(79,195,220,0.1)',  fill:true, tension:0.4, pointBackgroundColor:'#4FC3DC', pointRadius:5, pointHoverRadius:7 },
-                    { label:'LDFS', data: sizes.map(s=>gT(s,'ldfs')), borderColor:'#F5A962', backgroundColor:'rgba(245,169,98,0.1)', fill:true, tension:0.4, pointBackgroundColor:'#F5A962', pointRadius:5, pointHoverRadius:7 },
-                    { label:'IDFS', data: sizes.map(s=>gT(s,'idfs')), borderColor:'#E85D75', backgroundColor:'rgba(232,93,117,0.1)',  fill:true, tension:0.4, pointBackgroundColor:'#E85D75', pointRadius:5, pointHoverRadius:7 }
-                ]
-            },
-            options: {
-                responsive:true,
-                maintainAspectRatio:false,
-                plugins: {
-                    legend: {
-                        display:true,
-                        position:'top',
-                        labels: { color: '#E8EDF3', font: { family: 'JetBrains Mono' } }
-                    }
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "DFS",
+                data: sizes.map((s) => gT(s, "dfs")),
+                borderColor: colors.dfs,
+                backgroundColor: colors.fillDfs,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: colors.dfs,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+              },
+              {
+                label: "LDFS",
+                data: sizes.map((s) => gT(s, "ldfs")),
+                borderColor: colors.ldfs,
+                backgroundColor: colors.fillLdfs,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: colors.ldfs,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+              },
+              {
+                label: "IDFS",
+                data: sizes.map((s) => gT(s, "idfs")),
+                borderColor: colors.idfs,
+                backgroundColor: colors.fillIdfs,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: colors.idfs,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+                labels: {
+                  color: colors.text,
+                  font: { family: "Inter" },
                 },
-                scales: {
-                    y:{
-                        beginAtZero:true,
-                        title:{display:true,text:'ms', color:'#9BA5B4'},
-                        ticks: { color: '#9BA5B4' },
-                        grid: { color: '#3A4454' }
-                    },
-                    x:{
-                        grid:{display:false},
-                        ticks: { color: '#9BA5B4' }
-                    }
-                }
-            }
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "ms", color: colors.text },
+                ticks: { color: colors.text },
+                grid: { color: colors.grid },
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: colors.text },
+              },
+            },
+          },
         });
 
-        const ctx2 = document.getElementById('chartMemoria').getContext('2d');
+        const ctx2 = document.getElementById("chartMemoria").getContext("2d");
         if (chartMemoria) chartMemoria.destroy();
         chartMemoria = new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels,
-                datasets: [
-                    { label:'DFS',  data: sizes.map(s=>gM(s,'dfs')),  backgroundColor:'#4FC3DC', borderRadius:4, borderWidth:0 },
-                    { label:'LDFS', data: sizes.map(s=>gM(s,'ldfs')), backgroundColor:'#F5A962', borderRadius:4, borderWidth:0 },
-                    { label:'IDFS', data: sizes.map(s=>gM(s,'idfs')), backgroundColor:'#E85D75', borderRadius:4, borderWidth:0 }
-                ]
-            },
-            options: {
-                responsive:true,
-                maintainAspectRatio:false,
-                plugins: {
-                    legend: {
-                        display:true,
-                        position:'top',
-                        labels: { color: '#E8EDF3', font: { family: 'JetBrains Mono' } }
-                    }
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "DFS",
+                data: sizes.map((s) => gM(s, "dfs")),
+                backgroundColor: colors.dfs,
+                borderRadius: 8,
+                borderWidth: 0,
+              },
+              {
+                label: "LDFS",
+                data: sizes.map((s) => gM(s, "ldfs")),
+                backgroundColor: colors.ldfs,
+                borderRadius: 8,
+                borderWidth: 0,
+              },
+              {
+                label: "IDFS",
+                data: sizes.map((s) => gM(s, "idfs")),
+                backgroundColor: colors.idfs,
+                borderRadius: 8,
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+                labels: {
+                  color: colors.text,
+                  font: { family: "Inter" },
                 },
-                scales: {
-                    y:{
-                        beginAtZero:true,
-                        title:{display:true,text:'MB', color:'#9BA5B4'},
-                        ticks: { color: '#9BA5B4' },
-                        grid: { color: '#3A4454' }
-                    },
-                    x:{
-                        grid:{display:false},
-                        ticks: { color: '#9BA5B4' }
-                    }
-                }
-            }
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "MB", color: colors.text },
+                ticks: { color: colors.text },
+                grid: { color: colors.grid },
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: colors.text },
+              },
+            },
+          },
         });
-    }
+      }
 
-    // ── Tabla ────────────────────────────────────────────────────────────────
-    function actualizarTabla() {
-        const tbody = document.getElementById('metricsTableBody');
-        tbody.innerHTML = '';
+      // ── Tabla ────────────────────────────────────────────────────────────────
+      function actualizarTabla() {
+        const tbody = document.getElementById("metricsTableBody");
+        tbody.innerHTML = "";
 
-        const sizes = Object.keys(metricsData).sort((a,b) => parseInt(a)-parseInt(b));
+        const sizes = Object.keys(metricsData).sort(
+          (a, b) => parseInt(a) - parseInt(b),
+        );
 
-        sizes.forEach(size => {
-            const m = metricsData[size];
+        sizes.forEach((size) => {
+          const m = metricsData[size];
 
-            function t(algo) {
-                return (m[algo]?.time_ms_mean !== undefined)
-                    ? m[algo].time_ms_mean.toFixed(2)
-                    : (m.time_ms || 0).toFixed(2);
-            }
-            function mem(algo) {
-                return (m[algo]?.mem_bytes_peak_mean !== undefined)
-                    ? (m[algo].mem_bytes_peak_mean / (1024*1024)).toFixed(3)
-                    : (m.memory_mb || 0).toFixed(3);
-            }
-            function cls(v) {
-                const n = parseFloat(v);
-                return n > 1000 ? 'value-error' : n > 100 ? 'value-warning' : 'value-good';
-            }
+          function t(algo) {
+            return m[algo]?.time_ms_mean !== undefined
+              ? m[algo].time_ms_mean.toFixed(2)
+              : (m.time_ms || 0).toFixed(2);
+          }
+          function mem(algo) {
+            return m[algo]?.mem_bytes_peak_mean !== undefined
+              ? (m[algo].mem_bytes_peak_mean / (1024 * 1024)).toFixed(3)
+              : (m.memory_mb || 0).toFixed(3);
+          }
+          function cls(v) {
+            const n = parseFloat(v);
+            return n > 1000
+              ? "value-error"
+              : n > 100
+                ? "value-warning"
+                : "value-good";
+          }
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
                 <td><strong>N = ${size}</strong></td>
-                <td class="${cls(t('dfs'))}">${t('dfs')}</td>
-                <td class="${cls(t('ldfs'))}">${t('ldfs')}</td>
-                <td class="${cls(t('idfs'))}">${t('idfs')}</td>
-                <td class="${parseFloat(mem('dfs')) > 100 ? 'value-warning' : 'value-good'}">${mem('dfs')}</td>
+                <td class="${cls(t("dfs"))}">${t("dfs")}</td>
+                <td class="${cls(t("ldfs"))}">${t("ldfs")}</td>
+                <td class="${cls(t("idfs"))}">${t("idfs")}</td>
+                <td class="${parseFloat(mem("dfs")) > 100 ? "value-warning" : "value-good"}">${mem("dfs")}</td>
             `;
-            tbody.appendChild(tr);
+          tbody.appendChild(tr);
         });
 
-        document.getElementById('alertasCount').textContent = alertasActuales.length;
-    }
+        document.getElementById("alertasCount").textContent =
+          alertasActuales.length;
+      }
 
-    // ── Alertas ───────────────────────────────────────────────────────────────
-    function actualizarAlertas() {
-        const container = document.getElementById('alertasContainer');
+      // ── Alertas ───────────────────────────────────────────────────────────────
+      function actualizarAlertas() {
+        const container = document.getElementById("alertasContainer");
         if (!alertasActuales || alertasActuales.length === 0) {
-            container.innerHTML = '<div class="empty-state" style="padding:0.8rem;">✓ Sin alertas</div>';
-            return;
+          container.innerHTML =
+            '<div class="empty-state" style="padding:0.8rem;">✓ Sin alertas</div>';
+          return;
         }
-        container.innerHTML = '';
-        alertasActuales.forEach(a => {
-            const div = document.createElement('div');
-            div.className = `alert ${a.nivel}`;
-            div.innerHTML = `
+        container.innerHTML = "";
+        alertasActuales.forEach((a) => {
+          const div = document.createElement("div");
+          div.className = `alert ${a.nivel}`;
+          div.innerHTML = `
                 <div class="alert-icon">${a.icono}</div>
                 <div class="alert-content">
                     <div class="alert-title">${a.tipo}</div>
                     <div class="alert-message">${a.mensaje}</div>
                 </div>`;
-            container.appendChild(div);
+          container.appendChild(div);
         });
-    }
+      }
 
-    // ── Generar PDF ───────────────────────────────────────────────────────────
-    async function descargarPDF() {
-        document.getElementById('spinnerOverlay').classList.add('active');
-        log('📥 Generando PDF…', 'info');
+      // ── Generar PDF ───────────────────────────────────────────────────────────
+      async function descargarPDF() {
+        document.getElementById("spinnerOverlay").classList.add("active");
+        log("📥 Generando PDF…", "info");
 
         // Esperar un tick para que el spinner se pinte
-        await new Promise(r => setTimeout(r, 80));
+        await new Promise((r) => setTimeout(r, 80));
 
         try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-            const W = 210, margin = 14;
-            let y = 0;
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({ unit: "mm", format: "a4" });
+          const W = 210,
+            margin = 14;
+          let y = 0;
 
-            // ── Paleta ────────────────────────────────────────────────────────
-            const BLUE   = [15,  98,  254];
-            const DARK   = [22,  22,  22];
-            const GRAY   = [82,  82,  82];
-            const LGRAY  = [228, 228, 230];
-            const GREEN  = [36,  161, 72];
-            const ORANGE = [230, 96,  0];
-            const RED    = [218, 30,  40];
-            const WHITE  = [255, 255, 255];
+          // ── Paleta ────────────────────────────────────────────────────────
+          const BLUE = [78, 163, 184];
+          const DARK = [237, 244, 251];
+          const GRAY = [169, 183, 200];
+          const LGRAY = [45, 58, 76];
+          const GREEN = [78, 163, 184];
+          const ORANGE = [224, 138, 60];
+          const RED = [240, 139, 126];
+          const WHITE = [255, 255, 255];
 
-            // ── Portada ───────────────────────────────────────────────────────
+          // ── Portada ───────────────────────────────────────────────────────
+          doc.setFillColor(...BLUE);
+          doc.rect(0, 0, W, 55, "F");
+
+          doc.setTextColor(...WHITE);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(22);
+          doc.text("OPTICODE QA", margin, 22);
+
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "normal");
+          doc.text(
+            "Panel del Auditor - Reporte de Analisis de Rendimiento",
+            margin,
+            31,
+          );
+
+          doc.setFontSize(9);
+          const fecha = new Date().toLocaleString("es-ES", {
+            dateStyle: "long",
+            timeStyle: "short",
+          });
+          doc.text(`Generado: ${fecha}`, margin, 40);
+
+          const archivoCodigo =
+            document.getElementById("codigoSelect").value || "N/A";
+          const archivoAnalisis =
+            document.getElementById("bobAnalysisSelect").value || "N/A";
+          doc.text(
+            `Código analizado: ${archivoCodigo}   |   Analisis Bob: ${archivoAnalisis}`,
+            margin,
+            47,
+          );
+
+          y = 65;
+
+          // ── Función helpers ───────────────────────────────────────────────
+          function checkPage(needed = 20) {
+            if (y + needed > 280) {
+              doc.addPage();
+              y = 15;
+            }
+          }
+
+          function sectionTitle(txt) {
+            checkPage(14);
             doc.setFillColor(...BLUE);
-            doc.rect(0, 0, W, 55, 'F');
-
+            doc.rect(margin, y, W - margin * 2, 8, "F");
             doc.setTextColor(...WHITE);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(22);
-            doc.text('OPTICODE QA', margin, 22);
-
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Panel del Auditor - Reporte de Analisis de Rendimiento', margin, 31);
-
+            doc.setFont("helvetica", "bold");
             doc.setFontSize(9);
-            const fecha = new Date().toLocaleString('es-ES', { dateStyle:'long', timeStyle:'short' });
-            doc.text(`Generado: ${fecha}`, margin, 40);
-
-            const archivoCodigo = document.getElementById('codigoSelect').value || 'N/A';
-            const archivoAnalisis = document.getElementById('bobAnalysisSelect').value || 'N/A';
-            doc.text(`Código analizado: ${archivoCodigo}   |   Analisis Bob: ${archivoAnalisis}`, margin, 47);
-
-            y = 65;
-
-            // ── Función helpers ───────────────────────────────────────────────
-            function checkPage(needed = 20) {
-                if (y + needed > 280) { doc.addPage(); y = 15; }
-            }
-
-            function sectionTitle(txt) {
-                checkPage(14);
-                doc.setFillColor(...BLUE);
-                doc.rect(margin, y, W - margin*2, 8, 'F');
-                doc.setTextColor(...WHITE);
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(9);
-                doc.text(txt.toUpperCase(), margin + 3, y + 5.5);
-                y += 12;
-                doc.setTextColor(...DARK);
-            }
-
-            function rowBg(i) {
-                return i % 2 === 0 ? [249,250,251] : WHITE;
-            }
-
-            // ── Sección 0: Resumen del Análisis ───────────────────────────────
-            if (resumenActual) {
-                sectionTitle('[RESUMEN] Analisis Bob IDE');
-
-                if (resumenActual.titulo) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9);
-                    doc.setTextColor(...DARK);
-                    doc.text(`Analisis: ${resumenActual.titulo}`, margin, y);
-                    y += 6;
-                }
-
-                // Puntos clave
-                if (resumenActual.puntos_clave && resumenActual.puntos_clave.length > 0) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(8);
-                    doc.setTextColor(...BLUE);
-                    doc.text('[OK] Puntos Clave:', margin, y);
-                    y += 4;
-
-                    resumenActual.puntos_clave.slice(0, 3).forEach(punto => {
-                        checkPage(6);
-                        doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(7.5);
-                        doc.setTextColor(...DARK);
-                        const lineas = doc.splitTextToSize(`- ${punto}`, W - margin*2 - 4);
-                        doc.text(lineas[0] || '', margin + 2, y);
-                        y += 5;
-                    });
-                    y += 2;
-                }
-
-                // Cuellos de botella
-                if (resumenActual.cuellos_botella && resumenActual.cuellos_botella.length > 0) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(8);
-                    doc.setTextColor(...RED);
-                    doc.text('[CRITICO] Cuellos de Botella:', margin, y);
-                    y += 4;
-
-                    resumenActual.cuellos_botella.slice(0, 3).forEach(cuello => {
-                        checkPage(6);
-                        doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(7.5);
-                        doc.setTextColor(...DARK);
-                        const lineas = doc.splitTextToSize(`- ${cuello}`, W - margin*2 - 4);
-                        doc.text(lineas[0] || '', margin + 2, y);
-                        y += 5;
-                    });
-                    y += 2;
-                }
-
-                // Recomendaciones
-                if (resumenActual.recomendaciones && resumenActual.recomendaciones.length > 0) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(8);
-                    doc.setTextColor(...GREEN);
-                    doc.text('[RECOMENDACION] Propuestas:', margin, y);
-                    y += 4;
-
-                    resumenActual.recomendaciones.slice(0, 3).forEach(rec => {
-                        checkPage(6);
-                        doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(7.5);
-                        doc.setTextColor(...DARK);
-                        const lineas = doc.splitTextToSize(`- ${rec}`, W - margin*2 - 4);
-                        doc.text(lineas[0] || '', margin + 2, y);
-                        y += 5;
-                    });
-                    y += 4;
-                }
-
-                // Complejidades
-                if (resumenActual.metricas && resumenActual.metricas.complejidades_encontradas) {
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(7.5);
-                    doc.setTextColor(...DARK);
-                    const complejos = resumenActual.metricas.complejidades_encontradas.join(' | ');
-                    doc.text(`Complejidades: ${complejos}`, margin, y);
-                    y += 6;
-                }
-
-                y += 4;
-            }
-
-            // ── Sección 1: Métricas Detalladas ────────────────────────────────
-            sectionTitle('[METRICAS] Detalles de Rendimiento');
-
-            const sizes = Object.keys(metricsData).sort((a,b)=>parseInt(a)-parseInt(b));
-
-            // Cabecera tabla
-            const cols    = ['Tamaño N', 'DFS (ms)', 'LDFS (ms)', 'IDFS (ms)', 'Mem DFS (MB)'];
-            const colW    = [30, 38, 38, 38, 42];
-            const colX    = [margin];
-            colW.forEach((w,i) => { if(i>0) colX.push(colX[i-1]+colW[i-1]); });
-
-            doc.setFillColor(...LGRAY);
-            doc.rect(margin, y, W-margin*2, 8, 'F');
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(8);
+            doc.text(txt.toUpperCase(), margin + 3, y + 5.5);
+            y += 12;
             doc.setTextColor(...DARK);
-            cols.forEach((c,i) => doc.text(c, colX[i]+2, y+5.5));
-            y += 9;
+          }
 
-            sizes.forEach((size, ri) => {
-                checkPage(9);
-                const m = metricsData[size];
+          function rowBg(i) {
+            return i % 2 === 0 ? [249, 250, 251] : WHITE;
+          }
 
-                function tv(algo) {
-                    return (m[algo]?.time_ms_mean !== undefined)
-                        ? m[algo].time_ms_mean.toFixed(2)
-                        : (m.time_ms || 0).toFixed(2);
-                }
-                function mv(algo) {
-                    return (m[algo]?.mem_bytes_peak_mean !== undefined)
-                        ? (m[algo].mem_bytes_peak_mean/(1024*1024)).toFixed(3)
-                        : (m.memory_mb||0).toFixed(3);
-                }
-                function colorNum(v) {
-                    const n = parseFloat(v);
-                    return n > 1000 ? RED : n > 100 ? ORANGE : GREEN;
-                }
+          // ── Sección 0: Resumen del Análisis ───────────────────────────────
+          if (resumenActual) {
+            sectionTitle("[RESUMEN] Analisis Bob IDE");
 
-                doc.setFillColor(...rowBg(ri));
-                doc.rect(margin, y, W-margin*2, 8, 'F');
-                doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...DARK);
-                doc.text(`N = ${size}`, colX[0]+2, y+5.5);
+            if (resumenActual.titulo) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(9);
+              doc.setTextColor(...DARK);
+              doc.text(`Analisis: ${resumenActual.titulo}`, margin, y);
+              y += 6;
+            }
 
-                const vals = [tv('dfs'), tv('ldfs'), tv('idfs'), mv('dfs')];
-                vals.forEach((v,i) => {
-                    doc.setTextColor(...colorNum(i<3?v:'0'));
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(v, colX[i+1]+2, y+5.5);
-                });
-                y += 9;
-            });
+            // Puntos clave
+            if (
+              resumenActual.puntos_clave &&
+              resumenActual.puntos_clave.length > 0
+            ) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(...BLUE);
+              doc.text("[OK] Puntos Clave:", margin, y);
+              y += 4;
 
-            y += 6;
+              resumenActual.puntos_clave.slice(0, 3).forEach((punto) => {
+                checkPage(6);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7.5);
+                doc.setTextColor(...DARK);
+                const lineas = doc.splitTextToSize(
+                  `- ${punto}`,
+                  W - margin * 2 - 4,
+                );
+                doc.text(lineas[0] || "", margin + 2, y);
+                y += 5;
+              });
+              y += 2;
+            }
 
-            // ── Sección 2: Alertas ────────────────────────────────────────────
-            sectionTitle(`[ALERTAS] Detectadas (${alertasActuales.length})`);
+            // Cuellos de botella
+            if (
+              resumenActual.cuellos_botella &&
+              resumenActual.cuellos_botella.length > 0
+            ) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(...RED);
+              doc.text("[CRITICO] Cuellos de Botella:", margin, y);
+              y += 4;
 
-            if (alertasActuales.length === 0) {
-                doc.setFont('helvetica', 'italic');
-                doc.setFontSize(9);
-                doc.setTextColor(...GRAY);
-                doc.text('Sin alertas. Rendimiento dentro de parametros normales.', margin, y);
-                y += 10;
-            } else {
-                alertasActuales.forEach((a, i) => {
-                    checkPage(18);
-                    const c = a.nivel === 'error' ? RED : a.nivel === 'warning' ? ORANGE : BLUE;
-                    doc.setFillColor(...c);
-                    doc.rect(margin, y, 3, 14, 'F');
-                    doc.setFillColor(...rowBg(i));
-                    doc.rect(margin+3, y, W-margin*2-3, 14, 'F');
+              resumenActual.cuellos_botella.slice(0, 3).forEach((cuello) => {
+                checkPage(6);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7.5);
+                doc.setTextColor(...DARK);
+                const lineas = doc.splitTextToSize(
+                  `- ${cuello}`,
+                  W - margin * 2 - 4,
+                );
+                doc.text(lineas[0] || "", margin + 2, y);
+                y += 5;
+              });
+              y += 2;
+            }
 
-                    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...DARK);
-                    const tipoLimpio = a.tipo.replace(/[^a-zA-Z0-9_-]/g, '');
-                    doc.text(`[${tipoLimpio}]`, margin+6, y+5);
-                    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...GRAY);
-                    const lineas = doc.splitTextToSize(a.mensaje, W-margin*2-12);
-                    doc.text(lineas[0], margin+6, y+11);
-                    y += 16;
-                });
+            // Recomendaciones
+            if (
+              resumenActual.recomendaciones &&
+              resumenActual.recomendaciones.length > 0
+            ) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(...GREEN);
+              doc.text("[RECOMENDACION] Propuestas:", margin, y);
+              y += 4;
+
+              resumenActual.recomendaciones.slice(0, 3).forEach((rec) => {
+                checkPage(6);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7.5);
+                doc.setTextColor(...DARK);
+                const lineas = doc.splitTextToSize(
+                  `- ${rec}`,
+                  W - margin * 2 - 4,
+                );
+                doc.text(lineas[0] || "", margin + 2, y);
+                y += 5;
+              });
+              y += 4;
+            }
+
+            // Complejidades
+            if (
+              resumenActual.metricas &&
+              resumenActual.metricas.complejidades_encontradas
+            ) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(7.5);
+              doc.setTextColor(...DARK);
+              const complejos =
+                resumenActual.metricas.complejidades_encontradas.join(" | ");
+              doc.text(`Complejidades: ${complejos}`, margin, y);
+              y += 6;
             }
 
             y += 4;
+          }
 
-            // ── Sección 3: Gráficos ────────────────────────────────────────────
-            sectionTitle('[GRAFICOS] Rendimiento');
+          // ── Sección 1: Métricas Detalladas ────────────────────────────────
+          sectionTitle("[METRICAS] Detalles de Rendimiento");
 
-            const chartT  = document.getElementById('chartTiempo');
-            const chartM  = document.getElementById('chartMemoria');
-            const imgT    = chartT.toDataURL('image/png', 0.95);
-            const imgMem  = chartM.toDataURL('image/png', 0.95);
-            const gW      = (W - margin*2 - 6) / 2;
-            const gH      = gW * 0.65;
+          const sizes = Object.keys(metricsData).sort(
+            (a, b) => parseInt(a) - parseInt(b),
+          );
 
-            checkPage(gH + 6);
-            doc.addImage(imgT,   'PNG', margin,          y, gW, gH);
-            doc.addImage(imgMem, 'PNG', margin + gW + 6, y, gW, gH);
-            y += gH + 4;
+          // Cabecera tabla
+          const cols = [
+            "Tamaño N",
+            "DFS (ms)",
+            "LDFS (ms)",
+            "IDFS (ms)",
+            "Mem DFS (MB)",
+          ];
+          const colW = [30, 38, 38, 38, 42];
+          const colX = [margin];
+          colW.forEach((w, i) => {
+            if (i > 0) colX.push(colX[i - 1] + colW[i - 1]);
+          });
 
-            // Leyenda de colores
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
-            [['DFS', BLUE], ['LDFS', ORANGE], ['IDFS', [159,24,83]]].forEach(([lbl, clr], i) => {
-                const lx = margin + i * 30;
-                doc.setFillColor(...clr);
-                doc.rect(lx, y+1, 6, 4, 'F');
-                doc.setTextColor(...DARK);
-                doc.text(lbl, lx+8, y+5);
+          doc.setFillColor(...LGRAY);
+          doc.rect(margin, y, W - margin * 2, 8, "F");
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(8);
+          doc.setTextColor(...DARK);
+          cols.forEach((c, i) => doc.text(c, colX[i] + 2, y + 5.5));
+          y += 9;
+
+          sizes.forEach((size, ri) => {
+            checkPage(9);
+            const m = metricsData[size];
+
+            function tv(algo) {
+              return m[algo]?.time_ms_mean !== undefined
+                ? m[algo].time_ms_mean.toFixed(2)
+                : (m.time_ms || 0).toFixed(2);
+            }
+            function mv(algo) {
+              return m[algo]?.mem_bytes_peak_mean !== undefined
+                ? (m[algo].mem_bytes_peak_mean / (1024 * 1024)).toFixed(3)
+                : (m.memory_mb || 0).toFixed(3);
+            }
+            function colorNum(v) {
+              const n = parseFloat(v);
+              return n > 1000 ? RED : n > 100 ? ORANGE : GREEN;
+            }
+
+            doc.setFillColor(...rowBg(ri));
+            doc.rect(margin, y, W - margin * 2, 8, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(...DARK);
+            doc.text(`N = ${size}`, colX[0] + 2, y + 5.5);
+
+            const vals = [tv("dfs"), tv("ldfs"), tv("idfs"), mv("dfs")];
+            vals.forEach((v, i) => {
+              doc.setTextColor(...colorNum(i < 3 ? v : "0"));
+              doc.setFont("helvetica", "normal");
+              doc.text(v, colX[i + 1] + 2, y + 5.5);
             });
-            y += 12;
+            y += 9;
+          });
 
-            // ── Sección 4: Código analizado ───────────────────────────────────
-            if (codigoActual) {
-                checkPage(20);
-                sectionTitle(`[CODIGO] Analizado: ${archivoCodigo}`);
+          y += 6;
 
-                const lineas = codigoActual.split('\n').slice(0, 50);
-                doc.setFont('courier', 'normal');
-                doc.setFontSize(7);
-                doc.setTextColor(...DARK);
+          // ── Sección 2: Alertas ────────────────────────────────────────────
+          sectionTitle(`[ALERTAS] Detectadas (${alertasActuales.length})`);
 
-                lineas.forEach((linea, i) => {
-                    checkPage(6);
-                    if (i % 2 === 0) {
-                        doc.setFillColor(245,247,250);
-                        doc.rect(margin, y-3, W-margin*2, 5.5, 'F');
-                    }
-                    doc.setTextColor(100,100,100);
-                    doc.text(String(i+1).padStart(3,' '), margin+1, y+1.5);
-                    doc.setTextColor(...DARK);
-                    const cortada = doc.splitTextToSize(linea, W-margin*2-12);
-                    doc.text(cortada[0] || '', margin+10, y+1.5);
-                    y += 5.5;
-                });
+          if (alertasActuales.length === 0) {
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(9);
+            doc.setTextColor(...GRAY);
+            doc.text(
+              "Sin alertas. Rendimiento dentro de parametros normales.",
+              margin,
+              y,
+            );
+            y += 10;
+          } else {
+            alertasActuales.forEach((a, i) => {
+              checkPage(18);
+              const c =
+                a.nivel === "error"
+                  ? RED
+                  : a.nivel === "warning"
+                    ? ORANGE
+                    : BLUE;
+              doc.setFillColor(...c);
+              doc.rect(margin, y, 3, 14, "F");
+              doc.setFillColor(...rowBg(i));
+              doc.rect(margin + 3, y, W - margin * 2 - 3, 14, "F");
 
-                if (codigoActual.split('\n').length > 50) {
-                    checkPage(8);
-                    doc.setFont('helvetica', 'italic');
-                    doc.setFontSize(7.5);
-                    doc.setTextColor(...GRAY);
-                    doc.text(`... (se muestran las primeras 50 lineas de ${codigoActual.split('\n').length})`, margin, y+4);
-                    y += 10;
-                }
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(8);
+              doc.setTextColor(...DARK);
+              const tipoLimpio = a.tipo.replace(/[^a-zA-Z0-9_-]/g, "");
+              doc.text(`[${tipoLimpio}]`, margin + 6, y + 5);
+              doc.setFont("helvetica", "normal");
+              doc.setFontSize(7.5);
+              doc.setTextColor(...GRAY);
+              const lineas = doc.splitTextToSize(
+                a.mensaje,
+                W - margin * 2 - 12,
+              );
+              doc.text(lineas[0], margin + 6, y + 11);
+              y += 16;
+            });
+          }
+
+          y += 4;
+
+          // ── Sección 3: Gráficos ────────────────────────────────────────────
+          sectionTitle("[GRAFICOS] Rendimiento");
+
+          const chartT = document.getElementById("chartTiempo");
+          const chartM = document.getElementById("chartMemoria");
+          const imgT = chartT.toDataURL("image/png", 0.95);
+          const imgMem = chartM.toDataURL("image/png", 0.95);
+          const gW = (W - margin * 2 - 6) / 2;
+          const gH = gW * 0.65;
+
+          checkPage(gH + 6);
+          doc.addImage(imgT, "PNG", margin, y, gW, gH);
+          doc.addImage(imgMem, "PNG", margin + gW + 6, y, gW, gH);
+          y += gH + 4;
+
+          // Leyenda de colores
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(7.5);
+          [
+            ["DFS", BLUE],
+            ["LDFS", ORANGE],
+            ["IDFS", [159, 24, 83]],
+          ].forEach(([lbl, clr], i) => {
+            const lx = margin + i * 30;
+            doc.setFillColor(...clr);
+            doc.rect(lx, y + 1, 6, 4, "F");
+            doc.setTextColor(...DARK);
+            doc.text(lbl, lx + 8, y + 5);
+          });
+          y += 12;
+
+          // ── Sección 4: Código analizado ───────────────────────────────────
+          if (codigoActual) {
+            checkPage(20);
+            sectionTitle(`[CODIGO] Analizado: ${archivoCodigo}`);
+
+            const lineas = codigoActual.split("\n").slice(0, 50);
+            doc.setFont("courier", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...DARK);
+
+            lineas.forEach((linea, i) => {
+              checkPage(6);
+              if (i % 2 === 0) {
+                doc.setFillColor(245, 247, 250);
+                doc.rect(margin, y - 3, W - margin * 2, 5.5, "F");
+              }
+              doc.setTextColor(100, 100, 100);
+              doc.text(String(i + 1).padStart(3, " "), margin + 1, y + 1.5);
+              doc.setTextColor(...DARK);
+              const cortada = doc.splitTextToSize(linea, W - margin * 2 - 12);
+              doc.text(cortada[0] || "", margin + 10, y + 1.5);
+              y += 5.5;
+            });
+
+            if (codigoActual.split("\n").length > 50) {
+              checkPage(8);
+              doc.setFont("helvetica", "italic");
+              doc.setFontSize(7.5);
+              doc.setTextColor(...GRAY);
+              doc.text(
+                `... (se muestran las primeras 50 lineas de ${codigoActual.split("\n").length})`,
+                margin,
+                y + 4,
+              );
+              y += 10;
             }
+          }
 
-            // ── Pie de página en todas las páginas ────────────────────────────
-            const total = doc.getNumberOfPages();
-            for (let p = 1; p <= total; p++) {
-                doc.setPage(p);
-                doc.setFillColor(...LGRAY);
-                doc.rect(0, 290, W, 7, 'F');
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(7);
-                doc.setTextColor(...GRAY);
-                doc.text('OptiCode QA - Reporte de Auditoria de Algoritmos', margin, 294.5);
-                doc.text(`Página ${p} / ${total}`, W - margin - 20, 294.5);
-            }
+          // ── Pie de página en todas las páginas ────────────────────────────
+          const total = doc.getNumberOfPages();
+          for (let p = 1; p <= total; p++) {
+            doc.setPage(p);
+            doc.setFillColor(...LGRAY);
+            doc.rect(0, 290, W, 7, "F");
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7);
+            doc.setTextColor(...GRAY);
+            doc.text(
+              "OptiCode QA - Reporte de Auditoria de Algoritmos",
+              margin,
+              294.5,
+            );
+            doc.text(`Página ${p} / ${total}`, W - margin - 20, 294.5);
+          }
 
-            // ── Guardar ───────────────────────────────────────────────────────
-            const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0,16);
-            doc.save(`OptiCode_QA_Reporte_${ts}.pdf`);
-            log('✅ PDF generado y descargado exitosamente', 'success');
-
+          // ── Guardar ───────────────────────────────────────────────────────
+          const ts = new Date()
+            .toISOString()
+            .replace(/[:.]/g, "-")
+            .slice(0, 16);
+          doc.save(`OptiCode_QA_Reporte_${ts}.pdf`);
+          log("✅ PDF generado y descargado exitosamente", "success");
         } catch (e) {
-            log(`❌ Error generando PDF: ${e.message}`, 'error');
-            console.error(e);
+          log(`❌ Error generando PDF: ${e.message}`, "error");
+          console.error(e);
         } finally {
-            document.getElementById('spinnerOverlay').classList.remove('active');
+          document.getElementById("spinnerOverlay").classList.remove("active");
         }
-    }
-</script>
-</body>
+      }
+    </script>
+  </body>
 </html>

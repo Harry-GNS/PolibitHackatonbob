@@ -44,6 +44,12 @@ def index():
     return render_template('dashboard.html')
 
 
+@app.route('/LOGOQA.png')
+def logo_qa():
+    """Sirve el logo del dashboard."""
+    return send_from_directory(str(ROOT), 'LOGOQA.png')
+
+
 # ============================================
 # API REST (Backend)
 # ============================================
